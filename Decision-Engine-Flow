@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basel 3.1 RWA Decision Engine - Flow Diagram</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --teal-500: #208D8D;
+            --teal-600: #1D7480;
+            --green-500: #22C55E;
+            --blue-500: #3B82F6;
+            --red-500: #C0152F;
+            --orange-500: #A84B2F;
+            --gray-200: #F5F5F5;
+            --gray-400: #777C7C;
+            --cream-50: #FCFCF9;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f3f0 0%, #faf9f8 100%);
+            color: #1a1a1a;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid var(--teal-500);
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            margin: 0 0 10px 0;
+            font-size: 32px;
+            color: var(--teal-600);
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: var(--gray-400);
+            margin: 0;
+        }
+
+        .controls {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e8e8e8;
+        }
+
+        .controls h2 {
+            margin: 0 0 16px 0;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 11px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 150ms ease;
+        }
+
+        .btn-primary {
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-primary:hover {
+            background: #e8e8e8;
+        }
+
+        .btn-primary.active {
+            background: var(--teal-500);
+            color: white;
+            box-shadow: 0 0 0 3px rgba(32, 141, 141, 0.2);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: #e8e8e8;
+        }
+
+        .btn-secondary.active {
+            background: var(--teal-500);
+            color: white;
+            box-shadow: 0 0 0 3px rgba(32, 141, 141, 0.2);
+        }
+
+        .legend {
+            background: white;
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e8e8e8;
+        }
+
+        .legend h3 {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .legend-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .legend-box {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        .legend-box.sa {
+            background: #d4f1d4;
+            border: 1px solid #2d7a2d;
+        }
+
+        .legend-box.irb {
+            background: #d4e8f1;
+            border: 1px solid #2d5f7a;
+        }
+
+        .legend-box.restriction {
+            background: #f1d4d4;
+            border: 1px solid #7a2d2d;
+        }
+
+        .legend-box.change {
+            background: #fff4e6;
+            border: 1px solid #cc7000;
+        }
+
+        .content-panel {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e8e8e8;
+            display: none;
+        }
+
+        .content-panel.active {
+            display: block;
+        }
+
+        .flow-diagram {
+            margin: 20px 0;
+        }
+
+        .flow-section {
+            margin-bottom: 24px;
+        }
+
+        .flow-section h3 {
+            margin: 0 0 16px 0;
+            font-size: 16px;
+            color: #333;
+            border-left: 4px solid var(--teal-500);
+            padding-left: 12px;
+        }
+
+        .flow-boxes {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            margin-left: 20px;
+        }
+
+        .flow-box {
+            flex: 0 1 calc(50% - 10px);
+            min-width: 250px;
+            padding: 14px;
+            border-radius: 6px;
+            border: 2px solid #ddd;
+            background: #fafafa;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .flow-box.sa {
+            border-left: 5px solid var(--green-500);
+            background: #f0f9f0;
+        }
+
+        .flow-box.irb {
+            border-left: 5px solid var(--blue-500);
+            background: #f0f4f9;
+        }
+
+        .flow-box.restriction {
+            border-left: 5px solid var(--red-500);
+            background: #f9f0f0;
+        }
+
+        .flow-box.change {
+            border-left: 5px solid var(--orange-500);
+            background: #faf6f0;
+        }
+
+        .flow-box strong {
+            display: block;
+            margin-bottom: 6px;
+            color: #222;
+            font-size: 14px;
+        }
+
+        .reference-label {
+            display: inline-block;
+            background: #e8f4f8;
+            color: var(--teal-500);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-top: 6px;
+        }
+
+        .rules-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin: 16px 0;
+        }
+
+        .rules-table th {
+            background: #f5f5f5;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #ddd;
+            color: #333;
+        }
+
+        .rules-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .rules-table tr:hover {
+            background: #f9f9f9;
+        }
+
+        .exposure-class {
+            font-weight: 500;
+            color: var(--teal-600);
+        }
+
+        .rw-value {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .reference {
+            color: var(--gray-400);
+            font-size: 12px;
+        }
+
+        .change-badge {
+            background: #fff4e6;
+            color: #cc7000;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .info-box {
+            background: #fffef0;
+            border-left: 4px solid var(--orange-500);
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 16px;
+        }
+
+        .decision-tree {
+            background: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 16px;
+            margin: 16px 0;
+            font-size: 13px;
+        }
+
+        .tree-level {
+            margin-left: 20px;
+            margin-bottom: 12px;
+        }
+
+        .tree-level strong {
+            color: var(--teal-600);
+            display: inline-block;
+            min-width: 80px;
+        }
+
+        h4 {
+            margin: 16px 0 10px 0;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .formula-box {
+            background: #f0f4f9;
+            border-left: 4px solid var(--blue-500);
+            padding: 12px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            margin: 12px 0;
+        }
+
+        @media (max-width: 768px) {
+            .flow-boxes {
+                flex-direction: column;
+            }
+
+            .flow-box {
+                flex: 1 1 100%;
+            }
+
+            .controls h2, h1 {
+                font-size: 20px;
+            }
+
+            .button-group {
+                gap: 8px;
+            }
+
+            button {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+        }
+
+        .search-box {
+            margin-bottom: 16px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .highlight {
+            background: yellow;
+            font-weight: 600;
+        }
+
+        .reference-label {
+            cursor: pointer;
+            text-decoration: underline;
+            transition: all 150ms ease;
+        }
+
+        .reference-label:hover {
+            background: #c0e0e7 !important;
+            transform: scale(1.05);
+        }
+
+        .reference {
+            cursor: pointer;
+            text-decoration: underline;
+            color: #208D8D;
+            transition: all 150ms ease;
+        }
+
+        .reference:hover {
+            font-weight: 600;
+            color: #1D7480;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-panel {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 6px;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 150ms ease;
+        }
+
+        .modal-close:hover {
+            background: #e0e0e0;
+        }
+
+        .modal-header {
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--teal-500);
+            padding-bottom: 16px;
+        }
+
+        .modal-title {
+            margin: 0;
+            font-size: 22px;
+            color: var(--teal-600);
+        }
+
+        .modal-meta {
+            font-size: 12px;
+            color: var(--gray-400);
+            margin-top: 6px;
+        }
+
+        .modal-content {
+            margin-bottom: 20px;
+        }
+
+        .modal-section {
+            margin-bottom: 20px;
+        }
+
+        .modal-section h4 {
+            margin: 12px 0 8px 0;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .modal-excerpt {
+            background: #f9f9f9;
+            border-left: 4px solid var(--teal-500);
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #555;
+            font-style: italic;
+        }
+
+        .modal-keypoints {
+            background: #f0f9f0;
+            border-left: 4px solid var(--green-500);
+            padding: 12px;
+            border-radius: 4px;
+            margin-top: 12px;
+        }
+
+        .modal-keypoints h4 {
+            margin: 0 0 8px 0;
+            color: #2d7a2d;
+        }
+
+        .modal-keypoints ul {
+            margin: 0;
+            padding-left: 20px;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .modal-keypoints li {
+            margin-bottom: 6px;
+        }
+
+        @media (max-width: 768px) {
+            .modal-panel {
+                width: 95%;
+                padding: 16px;
+            }
+
+            .modal-title {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Basel 3.1 Credit Risk RWA - Decision Engine Flow Diagram</h1>
+            <p class="subtitle">Complete rules engine with all exposure classes, decision flows, and regulatory references</p>
+        </header>
+
+        <div class="legend">
+            <h3>Diagram Legend & Color Scheme</h3>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <div class="legend-box sa"></div>
+                    <span>Standardized Approach (SA)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box irb"></div>
+                    <span>IRB Approach (FIRB/AIRB)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box restriction"></div>
+                    <span>Restrictions & Prohibitions</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box change"></div>
+                    <span>⭐ Changes in Basel 3.1</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <h2>Select View</h2>
+            <div class="button-group">
+                <button class="btn-primary active" onclick="switchView('full')">Complete Decision Tree</button>
+                <button class="btn-secondary" onclick="switchView('sa')">Standardized Approach Only</button>
+                <button class="btn-secondary" onclick="switchView('irb')">IRB Approach Only</button>
+                <button class="btn-secondary" onclick="switchView('rules')">Rules & Risk Weights</button>
+                <button class="btn-secondary" onclick="switchView('changes')">Basel 3.1 Changes</button>
+            </div>
+        </div>
+
+        <!-- FULL VIEW -->
+        <div id="fullView" class="content-panel active">
+            <h2>Complete Basel 3.1 RWA Decision Flow</h2>
+
+            <div class="info-box">
+                💡 <strong>Decision Path:</strong> Risk Exposure → Select Approach (SA or IRB) → Select Exposure Class → Apply Risk Weight or IRB Formula → Calculate RWA
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-section">
+                    <h3>🎯 Level 1: Approach Selection</h3>
+                    <div class="flow-boxes">
+                        <div class="flow-box sa">
+                            <strong>Standardized Approach (SA)</strong>
+                            Pre-defined risk weights by exposure class and rating<br>
+                            <span class="reference-label">SA-CR30.34-30.71</span>
+                        </div>
+                        <div class="flow-box irb">
+                            <strong>IRB Approach (FIRB/AIRB)</strong>
+                            Internal model with PD, LGD, EAD, Maturity parameters<br>
+                            <span class="reference-label">CRE31.6-31.13</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flow-section">
+                    <h3>📊 Level 2: Exposure Class (11 Classes)</h3>
+                    <div class="flow-boxes">
+                        <div class="flow-box sa">
+                            <strong>1. Central Government & Central Bank</strong>
+                            RW: 0% (domestic currency)<br>
+                            <span class="reference-label">CRE31.1</span>
+                        </div>
+                        <div class="flow-box sa">
+                            <strong>2. Institutions</strong>
+                            CQS 1: 20% | CQS 2: 30% ⭐ (was 50%) | CQS 3-6: 50%-150%<br>
+                            <span class="reference-label">SA-CR30.41</span>
+                        </div>
+                        <div class="flow-box sa">
+                            <strong>3. Corporate (Rated)</strong>
+                            CQS 1: 20% | CQS 3: 75% ⭐ (was 100%) | CQS 4-6: 100%-150%<br>
+                            <span class="reference-label">SA-CR30.48</span>
+                        </div>
+                        <div class="flow-box sa">
+                            <strong>4. Corporate (Unrated)</strong>
+                            Investment Grade: 65% ⭐ (NEW) | Non-IG: 135%<br>
+                            <span class="reference-label">SA-CR30.50</span>
+                        </div>
+                        <div class="flow-box sa">
+                            <strong>5. SME (Unrated)</strong>
+                            RW: 85% (SME support factor removed ⭐)<br>
+                            <span class="reference-label">SA-CR30.50</span>
+                        </div>
+                        <div class="flow-box sa">
+                            <strong>6. Retail - Mortgages</strong>
+                            5 LTV Buckets: 20% / 30% / 40% / 50% / 105% ⭐ (NEW range)<br>
+                            <span class="reference-label">SA-CR30.61</span>
+                        </div>
+                        <div class="flow-box sa">
+                            <strong>7. Retail - Other (Transactor)</strong>
+                            RW: 45%<br>
+                            <span class="reference-label">SA-CR30.62</span>
+                        </div>
+                        <div class="flow-box sa">
+                            <strong>8. Retail - Other (Non-transactor)</strong>
+                            Base: 75% | Currency Mismatch: 112.5% ⭐ (1.5x multiplier)<br>
+                            <span class="reference-label">SA-CR30.62</span>
+                        </div>
+                        <div class="flow-box sa">
+                            <strong>9. Commercial Real Estate</strong>
+                            RW: 60%-150% (100% floor removed ⭐)<br>
+                            <span class="reference-label">SA-CR30.64</span>
+                        </div>
+                        <div class="flow-box restriction">
+                            <strong>10. Equity (Listed)</strong>
+                            RW: 290% | All IRB PROHIBITED ⭐<br>
+                            <span class="reference-label">SA-CR30.71 | CRE31.13</span>
+                        </div>
+                        <div class="flow-box restriction">
+                            <strong>11. Equity (Private)</strong>
+                            5-10y: 190% | 10-15y: 290% | &gt;15y: 370% | All IRB PROHIBITED ⭐<br>
+                            <span class="reference-label">SA-CR30.71 | CRE31.13</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flow-section">
+                    <h3>⚙️ Level 3: IRB Restrictions & FIRB/AIRB Availability</h3>
+                    <div class="flow-boxes">
+                        <div class="flow-box restriction">
+                            <strong>Gov/CB: IRB PROHIBITED</strong>
+                            Standardized Approach only<br>
+                            <span class="reference-label">CRE31.1</span>
+                        </div>
+                        <div class="flow-box irb">
+                            <strong>Institutions: FIRB Only ⭐</strong>
+                            AIRB removed in Basel 3.1<br>
+                            <span class="reference-label">CRE31.6</span>
+                        </div>
+                        <div class="flow-box irb">
+                            <strong>Large Corporates: FIRB Only ⭐</strong>
+                            AIRB removed in Basel 3.1<br>
+                            <span class="reference-label">CRE31.6</span>
+                        </div>
+                        <div class="flow-box irb">
+                            <strong>SME Corporates: FIRB & AIRB</strong>
+                            Both approaches available<br>
+                            <span class="reference-label">CRE31.8</span>
+                        </div>
+                        <div class="flow-box irb">
+                            <strong>Retail - Mortgages: AIRB Only</strong>
+                            FIRB not available<br>
+                            <span class="reference-label">CRE31.10</span>
+                        </div>
+                        <div class="flow-box irb">
+                            <strong>Retail - Other: FIRB & AIRB</strong>
+                            Both approaches available<br>
+                            <span class="reference-label">CRE31.10</span>
+                        </div>
+                        <div class="flow-box restriction">
+                            <strong>Equity: All IRB PROHIBITED ⭐</strong>
+                            Standardized Approach only<br>
+                            <span class="reference-label">CRE31.13</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flow-section">
+                    <h3>📈 Level 4: RWA Calculation & Output Floor</h3>
+                    <div class="flow-boxes">
+                        <div class="flow-box">
+                            <strong>Standardized: RWA = Exposure × Risk Weight %</strong>
+                            Simple multiplication of exposure amount by pre-defined risk weight<br>
+                            <span class="reference-label">SA-CR30.34-71</span>
+                        </div>
+                        <div class="flow-box irb">
+                            <strong>IRB: Complex Formula with PD, LGD, EAD, Maturity</strong>
+                            RW = (LGD × G(PD + √ρ × G(0.999))) × adjustments<br>
+                            <span class="reference-label">CRE31.9</span>
+                        </div>
+                        <div class="flow-box change">
+                            <strong>Output Floor: IRB RWA ≥ 72.5% of SA RWA ⭐</strong>
+                            Transitional: Y1=50%, Y2=60%, Y3=70%, Y4=80%, Y5+=72.5%<br>
+                            <span class="reference-label">Basel 3.1</span>
+                        </div>
+                        <div class="flow-box">
+                            <strong>Capital Requirement = RWA × 10.5%</strong>
+                            Pillar 1 (8%) + Capital Buffer (2.5%) = Minimum Required<br>
+                            <span class="reference-label">Basel 3.1 CRE31.2</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SA VIEW -->
+        <div id="saView" class="content-panel">
+            <h2>Standardized Approach (SA) - Risk Weights by Exposure Class</h2>
+
+            <div class="info-box">
+                📋 Simple rule: RWA = Exposure Amount × Risk Weight %. All weights are pre-defined based on exposure classification.
+            </div>
+
+            <table class="rules-table">
+                <thead>
+                    <tr>
+                        <th>Exposure Class</th>
+                        <th>Sub-Classification</th>
+                        <th>Risk Weight</th>
+                        <th>Basel 3.1 Reference</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="exposure-class">Central Government</span></td>
+                        <td>Domestic currency</td>
+                        <td><span class="rw-value">0%</span></td>
+                        <td><span class="reference">CRE31.1</span></td>
+                        <td>IRB Prohibited</td>
+                    </tr>
+                    <tr>
+                        <td rowspan="3"><span class="exposure-class">Institutions</span></td>
+                        <td>CQS 1 (AAA-AA-)</td>
+                        <td><span class="rw-value">20%</span></td>
+                        <td rowspan="3"><span class="reference">SA-CR30.41</span></td>
+                        <td>Short-term same</td>
+                    </tr>
+                    <tr>
+                        <td>CQS 2 (A+ to A-)</td>
+                        <td><span class="rw-value">30%</span> <span class="change-badge">⭐ Changed from 50%</span></td>
+                        <td>Reduced in Basel 3.1</td>
+                    </tr>
+                    <tr>
+                        <td>CQS 3-6 / Unrated</td>
+                        <td><span class="rw-value">50%-150%</span></td>
+                        <td>Graduated scale</td>
+                    </tr>
+                    <tr>
+                        <td rowspan="3"><span class="exposure-class">Corporate (Rated)</span></td>
+                        <td>CQS 1 (AAA-AA-)</td>
+                        <td><span class="rw-value">20%</span></td>
+                        <td rowspan="3"><span class="reference">SA-CR30.48</span></td>
+                        <td>ECRA approach</td>
+                    </tr>
+                    <tr>
+                        <td>CQS 3 (BBB-rated)</td>
+                        <td><span class="rw-value">75%</span> <span class="change-badge">⭐ Changed from 100%</span></td>
+                        <td>Investment grade reduction</td>
+                    </tr>
+                    <tr>
+                        <td>CQS 4-6 (BB and below)</td>
+                        <td><span class="rw-value">100%-150%</span></td>
+                        <td>Higher risk bucket</td>
+                    </tr>
+                    <tr>
+                        <td rowspan="2"><span class="exposure-class">Corporate (Unrated)</span></td>
+                        <td>Investment Grade</td>
+                        <td><span class="rw-value">65%</span> <span class="change-badge">⭐ NEW in Basel 3.1</span></td>
+                        <td rowspan="2"><span class="reference">SA-CR30.50</span></td>
+                        <td>Two-approach system</td>
+                    </tr>
+                    <tr>
+                        <td>Non-Investment Grade</td>
+                        <td><span class="rw-value">135%</span></td>
+                        <td>Prudent treatment</td>
+                    </tr>
+                    <tr>
+                        <td><span class="exposure-class">SME (Unrated)</span></td>
+                        <td>All SME exposures</td>
+                        <td><span class="rw-value">85%</span> <span class="change-badge">⭐ Factor removed</span></td>
+                        <td><span class="reference">SA-CR30.50</span></td>
+                        <td>Support factor 23.81% eliminated</td>
+                    </tr>
+                    <tr>
+                        <td rowspan="5"><span class="exposure-class">Retail - Mortgages</span></td>
+                        <td>LTV &lt; 60%</td>
+                        <td><span class="rw-value">20%</span></td>
+                        <td rowspan="5"><span class="reference">SA-CR30.61</span></td>
+                        <td>Low risk bucket</td>
+                    </tr>
+                    <tr>
+                        <td>LTV 60-80%</td>
+                        <td><span class="rw-value">30%</span></td>
+                        <td>Standard risk</td>
+                    </tr>
+                    <tr>
+                        <td>LTV 80-90%</td>
+                        <td><span class="rw-value">40%</span></td>
+                        <td>Elevated risk</td>
+                    </tr>
+                    <tr>
+                        <td>LTV 90-100%</td>
+                        <td><span class="rw-value">50%</span></td>
+                        <td>High risk</td>
+                    </tr>
+                    <tr>
+                        <td>LTV &gt; 100%</td>
+                        <td><span class="rw-value">105%</span> <span class="change-badge">⭐ NEW range</span></td>
+                        <td>Underwater mortgages</td>
+                    </tr>
+                    <tr>
+                        <td rowspan="2"><span class="exposure-class">Retail - Other</span></td>
+                        <td>Transactor / Low income</td>
+                        <td><span class="rw-value">45%</span></td>
+                        <td rowspan="2"><span class="reference">SA-CR30.62</span></td>
+                        <td>Reduced risk</td>
+                    </tr>
+                    <tr>
+                        <td>Non-transactor (currency match/mismatch)</td>
+                        <td><span class="rw-value">75% / 112.5%</span> <span class="change-badge">⭐ 1.5x multiplier</span></td>
+                        <td>Currency mismatch added</td>
+                    </tr>
+                    <tr>
+                        <td><span class="exposure-class">CRE - Mortgages</span></td>
+                        <td>Not materially CF dependent</td>
+                        <td><span class="rw-value">60%-150%</span></td>
+                        <td><span class="reference">SA-CR30.64</span></td>
+                        <td>100% floor removed ⭐</td>
+                    </tr>
+                    <tr>
+                        <td><span class="exposure-class">Equity (Listed)</span></td>
+                        <td>Public equities</td>
+                        <td><span class="rw-value">290%</span></td>
+                        <td><span class="reference">SA-CR30.71</span></td>
+                        <td>IRB prohibited ⭐</td>
+                    </tr>
+                    <tr>
+                        <td><span class="exposure-class">Equity (Private)</span></td>
+                        <td>5-10y / 10-15y / &gt;15y holding</td>
+                        <td><span class="rw-value">190% / 290% / 370%</span></td>
+                        <td><span class="reference">SA-CR30.71</span></td>
+                        <td>IRB prohibited ⭐</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>Standardized Approach Formula</h4>
+            <div class="formula-box">
+RWA = Exposure Amount × Risk Weight %
+
+Capital Required = RWA × 10.5%
+            </div>
+        </div>
+
+        <!-- IRB VIEW -->
+        <div id="irbView" class="content-panel">
+            <h2>IRB Approach - Exposure Class Availability & Restrictions</h2>
+
+            <div class="info-box">
+                🔬 IRB uses internal models with PD (Probability of Default), LGD (Loss Given Default), EAD (Exposure at Default), and Maturity inputs. Note: Major restrictions in Basel 3.1 (AIRB removed, Equity prohibited).
+            </div>
+
+            <table class="rules-table">
+                <thead>
+                    <tr>
+                        <th>Exposure Class</th>
+                        <th>FIRB Available</th>
+                        <th>AIRB Available</th>
+                        <th>Notes</th>
+                        <th>Reference</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="exposure-class">Central Gov & CB</span></td>
+                        <td style="color: #7a2d2d; font-weight: 600;">✗ No</td>
+                        <td style="color: #7a2d2d; font-weight: 600;">✗ No</td>
+                        <td>Standardized Approach only</td>
+                        <td><span class="reference">CRE31.1</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="exposure-class">Institutions</span></td>
+                        <td style="color: #2d7a2d; font-weight: 600;">✓ Yes</td>
+                        <td style="color: #7a2d2d; font-weight: 600;">✗ No <span class="change-badge">⭐ Removed</span></td>
+                        <td>Foundation IRB only; AIRB removed</td>
+                        <td><span class="reference">CRE31.6</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="exposure-class">Large Corporates</span></td>
+                        <td style="color: #2d7a2d; font-weight: 600;">✓ Yes</td>
+                        <td style="color: #7a2d2d; font-weight: 600;">✗ No <span class="change-badge">⭐ Removed</span></td>
+                        <td>Foundation IRB only; AIRB removed</td>
+                        <td><span class="reference">CRE31.6</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="exposure-class">Financial Corporates</span></td>
+                        <td style="color: #2d7a2d; font-weight: 600;">✓ Yes</td>
+                        <td style="color: #7a2d2d; font-weight: 600;">✗ No <span class="change-badge">⭐ Removed</span></td>
+                        <td>Foundation IRB only; AIRB removed</td>
+                        <td><span class="reference">CRE31.6</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="exposure-class">SME Corporates</span></td>
+                        <td style="color: #2d7a2d; font-weight: 600;">✓ Yes</td>
+                        <td style="color: #2d7a2d; font-weight: 600;">✓ Yes</td>
+                        <td>Both FIRB and AIRB available</td>
+                        <td><span class="reference">CRE31.8</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="exposure-class">Retail - Mortgages</span></td>
+                        <td style="color: #7a2d2d; font-weight: 600;">✗ No</td>
+                        <td style="color: #2d7a2d; font-weight: 600;">✓ Yes</td>
+                        <td>AIRB only; FIRB not permitted</td>
+                        <td><span class="reference">CRE31.10</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="exposure-class">Retail - Other</span></td>
+                        <td style="color: #2d7a2d; font-weight: 600;">✓ Yes</td>
+                        <td style="color: #2d7a2d; font-weight: 600;">✓ Yes</td>
+                        <td>Both FIRB and AIRB available</td>
+                        <td><span class="reference">CRE31.10</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="exposure-class">Specialized Lending</span></td>
+                        <td style="color: #2d7a2d; font-weight: 600;">✓ Yes</td>
+                        <td style="color: #2d7a2d; font-weight: 600;">✓ Yes</td>
+                        <td>Project/object/commodity finance</td>
+                        <td><span class="reference">CRE31.11</span></td>
+                    </tr>
+                    <tr>
+                        <td><span class="exposure-class">Equity</span></td>
+                        <td style="color: #7a2d2d; font-weight: 600;">✗ No</td>
+                        <td style="color: #7a2d2d; font-weight: 600;">✗ No <span class="change-badge">⭐ All Prohibited</span></td>
+                        <td>Standardized Approach only (290%-370% RW)</td>
+                        <td><span class="reference">CRE31.13</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>IRB Input Parameters & Floors</h4>
+            <table class="rules-table">
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Floor Value</th>
+                        <th>Exposure Classes</th>
+                        <th>Reference</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Probability of Default (PD)</strong></td>
+                        <td><span class="rw-value">0.03% per annum</span></td>
+                        <td>All rated exposures</td>
+                        <td><span class="reference">CRE31.22</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Loss Given Default (LGD) - Unsecured</strong></td>
+                        <td><span class="rw-value">45%</span></td>
+                        <td>Institutions, Corporates</td>
+                        <td><span class="reference">CRE31.23</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Loss Given Default (LGD) - Secured</strong></td>
+                        <td><span class="rw-value">0% (risk mitigated)</span></td>
+                        <td>Mortgages, CRE</td>
+                        <td><span class="reference">CRE31.23</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Maturity (M)</strong></td>
+                        <td><span class="rw-value">1 - 5 years</span></td>
+                        <td>All corporate exposures</td>
+                        <td><span class="reference">CRE31.25</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Asset Correlation (ρ)</strong></td>
+                        <td><span class="rw-value">1.25% - 12% (varies by PD)</span></td>
+                        <td>Based on exposure class & PD</td>
+                        <td><span class="reference">CRE31.18-20</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>IRB Risk Weight Formula (Vasicek)</h4>
+            <div class="formula-box">
+RW = (LGD × G(PD + √ρ × G(0.999))) × 1.06 × (1 + (M - 2.5) × b) × (1.25 / (1 - 1.5 × b))
+
+Where:
+  • G = Inverse normal cumulative distribution function
+  • ρ = Asset correlation (function of PD and exposure class)
+  • b = Maturity adjustment (0.05956 for corporate)
+  • M = Maturity in years
+
+Output Floor Requirement:
+  IRB RWA ≥ 72.5% × SA RWA (Year 5+)
+            </div>
+        </div>
+
+        <!-- RULES VIEW -->
+        <div id="rulesView" class="content-panel">
+            <h2>Basel 3.1 Rules Matrix - Complete Reference</h2>
+
+            <div class="info-box">
+                📖 Complete mapping of all Basel 3.1 credit risk rules, restrictions, and parameters with regulatory references.
+            </div>
+
+            <h4>Standardized Approach Risk Weights Summary</h4>
+            <table class="rules-table">
+                <thead>
+                    <tr>
+                        <th>Exposure Class</th>
+                        <th>RW Range</th>
+                        <th>Key Features</th>
+                        <th>Reference</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Central Gov/CB</td>
+                        <td>0%</td>
+                        <td>Domestic currency, IRB prohibited</td>
+                        <td>CRE31.1</td>
+                    </tr>
+                    <tr>
+                        <td>Institutions</td>
+                        <td>20%-150%</td>
+                        <td>By CQS rating, CQS2 reduced 50%→30%</td>
+                        <td>SA-CR30.41</td>
+                    </tr>
+                    <tr>
+                        <td>Corporate (Rated)</td>
+                        <td>20%-150%</td>
+                        <td>By CQS, CQS3 reduced 100%→75%</td>
+                        <td>SA-CR30.48</td>
+                    </tr>
+                    <tr>
+                        <td>Corporate (Unrated)</td>
+                        <td>65%-135%</td>
+                        <td>NEW: Two-approach system (IG vs Non-IG)</td>
+                        <td>SA-CR30.50</td>
+                    </tr>
+                    <tr>
+                        <td>SME (Unrated)</td>
+                        <td>85%</td>
+                        <td>Support factor (23.81%) eliminated</td>
+                        <td>SA-CR30.50</td>
+                    </tr>
+                    <tr>
+                        <td>Retail - Mortgages</td>
+                        <td>20%-105%</td>
+                        <td>5 LTV buckets (NEW: up to 105%)</td>
+                        <td>SA-CR30.61</td>
+                    </tr>
+                    <tr>
+                        <td>Retail - Other</td>
+                        <td>45%-112.5%</td>
+                        <td>Transactor 45%, 1.5x multiplier for currency mismatch</td>
+                        <td>SA-CR30.62</td>
+                    </tr>
+                    <tr>
+                        <td>CRE - Mortgages</td>
+                        <td>60%-150%</td>
+                        <td>100% floor removed (non-CF dependent)</td>
+                        <td>SA-CR30.64</td>
+                    </tr>
+                    <tr>
+                        <td>Equity (Listed)</td>
+                        <td>290%</td>
+                        <td>All IRB prohibited, SA only</td>
+                        <td>SA-CR30.71, CRE31.13</td>
+                    </tr>
+                    <tr>
+                        <td>Equity (Private)</td>
+                        <td>190%-370%</td>
+                        <td>By holding period; All IRB prohibited</td>
+                        <td>SA-CR30.71, CRE31.13</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>Off-Balance Sheet Conversion Factors</h4>
+            <table class="rules-table">
+                <thead>
+                    <tr>
+                        <th>Item Type</th>
+                        <th>Conversion Factor</th>
+                        <th>Reference</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Unconditionally cancellable (≤14 months)</td>
+                        <td>10%</td>
+                        <td>SA-CR30.34</td>
+                    </tr>
+                    <tr>
+                        <td>Other commitments (≤1 year)</td>
+                        <td>20%</td>
+                        <td>SA-CR30.34</td>
+                    </tr>
+                    <tr>
+                        <td>Other commitments (&gt;1 year)</td>
+                        <td>40% (changed from 50%)</td>
+                        <td>SA-CR30.34</td>
+                    </tr>
+                    <tr>
+                        <td>Derivatives</td>
+                        <td>0%-100% (by maturity)</td>
+                        <td>CRE31.34-35</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- CHANGES VIEW -->
+        <div id="changesView" class="content-panel">
+            <h2>Basel 3.1 Changes Summary - What's New & What Changed</h2>
+
+            <div class="info-box">
+                ⭐ This section highlights all major changes introduced in Basel 3.1 compared to previous Basel III. These changes significantly impact RWA calculations.
+            </div>
+
+            <div class="flow-diagram">
+                <div class="flow-section">
+                    <h3>🔴 RESTRICTIONS INTRODUCED IN BASEL 3.1</h3>
+                    <div class="flow-boxes">
+                        <div class="flow-box restriction">
+                            <strong>Central Gov & Central Bank: SA Only (IRB Prohibited)</strong>
+                            No internal model approaches allowed. Must use Standardized Approach with 0% RW for domestic currency exposures.<br>
+                            <span class="reference-label">CRE31.1</span>
+                        </div>
+                        <div class="flow-box restriction">
+                            <strong>Institutions: FIRB Only (AIRB Removed) ⭐</strong>
+                            Advanced IRB approaches no longer available for institutions. Foundation IRB with supervisory LGD parameters required.<br>
+                            <span class="reference-label">CRE31.6</span>
+                        </div>
+                        <div class="flow-box restriction">
+                            <strong>Large Corporates: FIRB Only (AIRB Removed) ⭐</strong>
+                            Similar to institutions, AIRB prohibited. FIRB with supervisory inputs mandatory.<br>
+                            <span class="reference-label">CRE31.6</span>
+                        </div>
+                        <div class="flow-box restriction">
+                            <strong>Financial Corporates: FIRB Only (AIRB Removed) ⭐</strong>
+                            All financial corporates (banks, insurers, etc.) use FIRB only.<br>
+                            <span class="reference-label">CRE31.6</span>
+                        </div>
+                        <div class="flow-box restriction">
+                            <strong>Equity: All IRB Prohibited ⭐</strong>
+                            PD/LGD approaches, Internal Model, and Simple Risk Weight methods all banned. Standardized Approach with fixed RW only.<br>
+                            <span class="reference-label">CRE31.13</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flow-section">
+                    <h3>🟠 RISK WEIGHT CHANGES (SA)</h3>
+                    <div class="flow-boxes">
+                        <div class="flow-box change">
+                            <strong>Institutions CQS 2: 50% → 30% ⭐</strong>
+                            A+ to A- rated institutions now carry significantly lower capital requirement. Reflects improved credit quality assessment.<br>
+                            <span class="reference-label">SA-CR30.41</span>
+                        </div>
+                        <div class="flow-box change">
+                            <strong>Corporate CQS 3 (BBB): 100% → 75% ⭐</strong>
+                            Investment-grade corporates benefit from 25% RW reduction. Recognizes lower default risk of BBB-rated borrowers.<br>
+                            <span class="reference-label">SA-CR30.48</span>
+                        </div>
+                        <div class="flow-box change">
+                            <strong>SME Support Factor: REMOVED ⭐</strong>
+                            Previously 23.81% reduction applied to SME exposures. Now subject to risk-weighted approach (85% for unrated).<br>
+                            <span class="reference-label">SA-CR30.50</span>
+                        </div>
+                        <div class="flow-box change">
+                            <strong>Corporate Unrated: NEW Two-Approach System ⭐</strong>
+                            Investment Grade: 65%, Non-Investment Grade: 135%. Replaces previous flat 100% approach. More risk-sensitive.<br>
+                            <span class="reference-label">SA-CR30.50</span>
+                        </div>
+                        <div class="flow-box change">
+                            <strong>Retail - Mortgages: NEW 5 LTV Buckets (20%-105%) ⭐</strong>
+                            Previously single 35% RW. Now granular: &lt;60% = 20%, 60-80% = 30%, 80-90% = 40%, 90-100% = 50%, &gt;100% = 105%.<br>
+                            <span class="reference-label">SA-CR30.61</span>
+                        </div>
+                        <div class="flow-box change">
+                            <strong>Retail Currency Mismatch: NEW 1.5x Multiplier ⭐</strong>
+                            When exposure currency differs from obligor income currency, RW × 1.5. Example: 75% becomes 112.5%.<br>
+                            <span class="reference-label">SA-CR30.62</span>
+                        </div>
+                        <div class="flow-box change">
+                            <strong>CRE Floor: 100% Floor Removed ⭐</strong>
+                            Non-cash-flow dependent properties now benefit from risk-sensitive approach (60%-150% range).<br>
+                            <span class="reference-label">SA-CR30.64</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flow-section">
+                    <h3>🟡 NEW FEATURES & PARAMETERS</h3>
+                    <div class="flow-boxes">
+                        <div class="flow-box change">
+                            <strong>Output Floor: IRB RWA ≥ 72.5% of SA RWA ⭐</strong>
+                            IRB approaches cannot produce RWA lower than 72.5% of equivalent SA calculation. Transitional: Y1-4 = 50%-80%, Y5+ = 72.5%.<br>
+                            <span class="reference-label">Basel 3.1</span>
+                        </div>
+                        <div class="flow-box change">
+                            <strong>Input Floors - PD: 0.03% Minimum ⭐</strong>
+                            All PD estimates floor at 0.03% per annum. No IRB model can estimate lower default probability regardless of actual data.<br>
+                            <span class="reference-label">CRE31.22</span>
+                        </div>
+                        <div class="flow-box change">
+                            <strong>Input Floors - LGD: 45% Unsecured Minimum ⭐</strong>
+                            Unsecured exposures floor at 45% LGD. Reflects minimum expected loss level even for low-loss-severity exposures.<br>
+                            <span class="reference-label">CRE31.23</span>
+                        </div>
+                        <div class="flow-box change">
+                            <strong>Maturity Floor: 1-5 Years ⭐</strong>
+                            All exposures floor at 1 year minimum maturity, ceiling at 5 years for input purposes. Prevents excessive maturity adjustments.<br>
+                            <span class="reference-label">CRE31.25</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flow-section">
+                    <h3>📊 IMPACT SUMMARY TABLE</h3>
+                    <table class="rules-table">
+                        <thead>
+                            <tr>
+                                <th>Change Category</th>
+                                <th>Previous Basel III</th>
+                                <th>New Basel 3.1</th>
+                                <th>Impact on RWA</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Institutions CQS2</strong></td>
+                                <td>50% RW</td>
+                                <td>30% RW</td>
+                                <td>↓ -40% (Lower capital)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Corp Rated CQS3</strong></td>
+                                <td>100% RW</td>
+                                <td>75% RW</td>
+                                <td>↓ -25% (Lower capital)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>SME Support Factor</strong></td>
+                                <td>×0.7619 reduction</td>
+                                <td>Removed</td>
+                                <td>↑ +31% (Higher capital)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Corp Unrated</strong></td>
+                                <td>100% flat</td>
+                                <td>65%-135% granular</td>
+                                <td>↓ -35% to ↑ +35% (More sensitive)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Mortgages LTV</strong></td>
+                                <td>35% flat</td>
+                                <td>20%-105% buckets</td>
+                                <td>↓ -43% to ↑ +200% (Risk-based)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Retail Currency MM</strong></td>
+                                <td>No adjustment</td>
+                                <td>×1.5 multiplier</td>
+                                <td>↑ +50% (For mismatches)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>AIRB Availability</strong></td>
+                                <td>Permitted for institutions, large corporates</td>
+                                <td>Removed for institutions, large corp, financials</td>
+                                <td>↑ Significant (Less favorable RW)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Equity IRB</strong></td>
+                                <td>PD/LGD approach available</td>
+                                <td>All IRB prohibited</td>
+                                <td>↑ Major increase (SA only: 290%+)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Output Floor</strong></td>
+                                <td>No floor</td>
+                                <td>72.5% of SA (Y5+)</td>
+                                <td>↑ May increase IRB RWA</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchView(viewName) {
+            // Hide all content panels
+            document.querySelectorAll('.content-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+
+            // Show selected panel
+            const panelId = viewName + 'View';
+            const panel = document.getElementById(panelId);
+            if (panel) {
+                panel.classList.add('active');
+            }
+
+            // Update button states
+            document.querySelectorAll('button[onclick*="switchView"]').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            console.log(`✅ Switched to view: ${viewName}`);
+        }
+
+        // Log on load
+        window.addEventListener('load', function() {
+            console.log('✅ Basel 3.1 RWA Decision Engine loaded successfully');
+            console.log('📋 Available views: full, sa, irb, rules, changes');
+        });
+
+        // Regulatory References Database
+        const regulatoryReferences = {
+            "CRE31.1": {
+                title: "Central Government & Central Bank Exposures",
+                document: "Basel 3.1 Credit Risk",
+                section: "CRE31.1",
+                source: "Basel Committee on Banking Supervision",
+                excerpt: "Exposures to central governments and central banks of countries where the bank is incorporated or the currency of the exposure is the legal tender of the country where the bank is incorporated, are assigned a risk weight of 0%. Exposures to central governments and central banks of other countries, and exposures in foreign currency to central governments and central banks of any country, are assigned a risk weight equal to the risk weight applicable to the sovereign credit rating of the country.",
+                keyPoints: ["0% RW for domestic currency central government exposures", "All IRB approaches prohibited for this exposure class", "Risk weight varies by country rating for foreign currency exposures"]
+            },
+            "SA-CR30.41": {
+                title: "Institution Risk Weights",
+                document: "Basel 3.1 Credit Risk",
+                section: "SA-CR30.41",
+                source: "Basel Committee on Banking Supervision",
+                excerpt: "The risk weight for an institution exposure is determined based on the Credit Quality Step (CQS). For CQS 1 (AAA to AA-), the risk weight is 20%. For CQS 2 (A+ to A-), the risk weight is 30% (reduced from 50% in Basel III). For CQS 3 to CQS 6, risk weights range from 50% to 150%.",
+                keyPoints: ["CQS 1: 20% risk weight", "CQS 2: 30% (Basel 3.1 change - reduced from 50%)", "CQS 3-6: 50%-150% graduated scale", "Foundation IRB only in Basel 3.1 (AIRB removed)"]
+            },
+            "SA-CR30.48": {
+                title: "Corporate Rated Exposures",
+                document: "Basel 3.1 Credit Risk",
+                section: "SA-CR30.48",
+                source: "Basel Committee on Banking Supervision",
+                excerpt: "For corporate exposures subject to ECRA (External Credit Rating Assessment), the risk weight is determined by the credit quality step. CQS 1 (AAA to AA-) receives 20% RW. CQS 3 (BBB-rated) receives 75% RW (reduced from 100% in Basel III). CQS 4 to CQS 6 receive 100% to 150% RW respectively.",
+                keyPoints: ["CQS 1: 20% risk weight", "CQS 3: 75% (Basel 3.1 change - reduced from 100%)", "CQS 4-6: 100%-150% range", "ECRA approach for rated corporates"]
+            },
+            "SA-CR30.50": {
+                title: "Unrated Corporate & SME Exposures",
+                document: "Basel 3.1 Credit Risk",
+                section: "SA-CR30.50",
+                source: "Basel Committee on Banking Supervision",
+                excerpt: "For unrated corporate exposures, a two-approach system applies: (i) exposures with investment-grade characteristics receive a 65% risk weight (new in Basel 3.1), and (ii) exposures with non-investment-grade characteristics receive a 135% risk weight. For SME unrated exposures, a uniform 85% risk weight applies. The previous SME support factor of 23.81% has been removed.",
+                keyPoints: ["Unrated IG Corporate: 65% RW (new in Basel 3.1)", "Unrated Non-IG Corporate: 135% RW", "SME Unrated: 85% RW (support factor removed)", "Support factor removal increases capital requirements for SMEs"]
+            },
+            "SA-CR30.61": {
+                title: "Retail - Residential Mortgages",
+                document: "Basel 3.1 Credit Risk",
+                section: "SA-CR30.61",
+                source: "Basel Committee on Banking Supervision",
+                excerpt: "Retail exposures secured by residential properties are assigned risk weights based on Loan-to-Value (LTV) ratios: LTV < 60% = 20%, LTV 60-80% = 30%, LTV 80-90% = 40%, LTV 90-100% = 50%, and LTV > 100% = 105% (new range in Basel 3.1). Previously a single 35% risk weight applied.",
+                keyPoints: ["5 LTV buckets introduced in Basel 3.1", "LTV > 100%: 105% RW (new in Basel 3.1 for underwater mortgages)", "More granular risk sensitivity than previous 35% flat rate", "AIRB only available (FIRB prohibited)"]
+            },
+            "SA-CR30.62": {
+                title: "Retail - Non-Mortgage Exposures",
+                document: "Basel 3.1 Credit Risk",
+                section: "SA-CR30.62",
+                source: "Basel Committee on Banking Supervision",
+                excerpt: "For retail exposures not secured by residential property, transactor exposures (high turnover, low credit risk) receive a 45% risk weight. Non-transactor exposures receive a base 75% risk weight. A 1.5x multiplier is applied when the exposure currency differs from the obligor's income currency, resulting in 112.5% RW for non-transactors with currency mismatch.",
+                keyPoints: ["Transactor RW: 45%", "Non-transactor RW: 75% (base)", "Currency mismatch: 1.5x multiplier (new in Basel 3.1)", "Currency mismatch RW: 112.5%"]
+            },
+            "SA-CR30.64": {
+                title: "Commercial Real Estate Mortgages",
+                document: "Basel 3.1 Credit Risk",
+                section: "SA-CR30.64",
+                source: "Basel Committee on Banking Supervision",
+                excerpt: "For commercial real estate mortgages not materially dependent on cash flows, risk weights range from 60% to 150% based on the credit characteristics of the property. The previous 100% floor for all CRE mortgages has been removed in Basel 3.1, allowing for more risk-sensitive pricing.",
+                keyPoints: ["CRE RW range: 60%-150%", "100% floor removed in Basel 3.1", "Non-cash-flow dependent properties now more granular", "Reflects improved risk differentiation"]
+            },
+            "SA-CR30.71": {
+                title: "Equity Exposures",
+                document: "Basel 3.1 Credit Risk",
+                section: "SA-CR30.71",
+                source: "Basel Committee on Banking Supervision",
+                excerpt: "Listed equity exposures are assigned a 290% risk weight under the standardized approach. Private equity exposures are assigned risk weights based on holding period: 5-10 years = 190%, 10-15 years = 290%, and > 15 years = 370%. All IRB approaches are prohibited for equity exposures in Basel 3.1.",
+                keyPoints: ["Listed equity: 290% RW", "Private equity: 190%-370% by holding period", "All IRB approaches prohibited (Basel 3.1 change)", "Standardized approach only"]
+            },
+            "CRE31.6": {
+                title: "IRB for Institutions & Corporates",
+                document: "Basel 3.1 Credit Risk",
+                section: "CRE31.6",
+                source: "Basel Committee on Banking Supervision",
+                excerpt: "In Basel 3.1, Advanced IRB (AIRB) approaches are no longer available for institutions, large corporates, and financial corporations. Banks may use only Foundation IRB (FIRB) with supervisory estimates of LGD parameters. This represents a significant restriction from Basel III, where AIRB was permitted.",
+                keyPoints: ["Institutions: FIRB only (AIRB removed)", "Large corporates: FIRB only (AIRB removed)", "Financial corporates: FIRB only (AIRB removed)", "Supervisory LGD parameters mandatory"]
+            },
+            "CRE31.13": {
+                title: "IRB Prohibition - Equity Exposures",
+                document: "Basel 3.1 Credit Risk",
+                section: "CRE31.13",
+                source: "Basel Committee on Banking Supervision",
+                excerpt: "All Internal Rating-Based approaches are prohibited for equity exposures under Basel 3.1. This includes PD/LGD approaches, Internal Model approaches, and Simple Risk Weight methods. Banks must apply the standardized approach for all equity exposures.",
+                keyPoints: ["All IRB methods prohibited for equity", "Includes listed and private equity", "Standardized approach (290%-370%) mandatory", "Significant increase from Basel III"]
+            },
+            "CRE31.22": {
+                title: "PD Floor for IRB",
+                document: "Basel 3.1 Credit Risk",
+                section: "CRE31.22",
+                source: "Basel Committee on Banking Supervision",
+                excerpt: "Banks using IRB approaches must apply a minimum Probability of Default (PD) estimate of 0.03% per annum for all rated exposures. This floor ensures a minimum level of conservatism in internal probability of default estimates, regardless of empirical observations.",
+                keyPoints: ["Minimum PD: 0.03% per annum", "Applies to all rated exposures", "Conservative floor ensures prudent risk weighting", "Cannot be overridden by empirical data"]
+            },
+            "CRE31.23": {
+                title: "LGD Floor for IRB",
+                document: "Basel 3.1 Credit Risk",
+                section: "CRE31.23",
+                source: "Basel Committee on Banking Supervision",
+                excerpt: "For unsecured corporate exposures, banks must apply a minimum Loss Given Default (LGD) estimate of 45%. For secured exposures, LGD is determined based on the security's effective protection. These floors ensure prudent treatment of loss severity assumptions in IRB models.",
+                keyPoints: ["Unsecured LGD floor: 45%", "Secured LGD: 0% (with adequate protection)", "Reflects loss severity assumptions", "Conservative approach to credit losses"]
+            },
+            "CRE31.25": {
+                title: "Maturity Parameter for IRB",
+                document: "Basel 3.1 Credit Risk",
+                section: "CRE31.25",
+                source: "Basel Committee on Banking Supervision",
+                excerpt: "The maturity parameter used in IRB formulas is subject to a minimum of 1 year and a maximum of 5 years for input purposes. Exposures with remaining maturities shorter than 1 year are treated as 1 year, and exposures with maturities exceeding 5 years are capped at 5 years.",
+                keyPoints: ["Maturity floor: 1 year", "Maturity ceiling: 5 years", "Prevents excessive maturity adjustments", "Standardizes treatment of very short/long positions"]
+            }
+        };
+
+        // Modal functionality
+        function openReferenceModal(refCode) {
+            const ref = regulatoryReferences[refCode];
+            if (!ref) return;
+
+            const modal = document.getElementById('regulatoryModal');
+            const title = document.getElementById('modalTitle');
+            const meta = document.getElementById('modalMeta');
+            const excerpt = document.getElementById('modalExcerpt');
+            const keypoints = document.getElementById('modalKeypoints');
+
+            title.textContent = ref.title;
+            meta.innerHTML = `<strong>${ref.section}</strong> | ${ref.document} | ${ref.source}`;
+            excerpt.textContent = ref.excerpt;
+
+            let keypointsHTML = '<h4>Key Points:</h4><ul>';
+            ref.keyPoints.forEach(point => {
+                keypointsHTML += `<li>${point}</li>`;
+            });
+            keypointsHTML += '</ul>';
+            keypoints.innerHTML = keypointsHTML;
+
+            modal.classList.add('active');
+        }
+
+        function closeReferenceModal() {
+            const modal = document.getElementById('regulatoryModal');
+            modal.classList.remove('active');
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeReferenceModal();
+            }
+        });
+
+        // Close modal on background click
+        document.getElementById('regulatoryModal')?.addEventListener('click', function(event) {
+            if (event.target === this) {
+                closeReferenceModal();
+            }
+        });
+
+        // Add click handlers to all reference labels
+        document.addEventListener('DOMContentLoaded', function() {
+            const references = document.querySelectorAll('.reference-label, .reference');
+            references.forEach(ref => {
+                ref.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const refCode = this.textContent.trim();
+                    openReferenceModal(refCode);
+                });
+            });
+        });
+    </script>
+
+    <!-- Regulatory Reference Modal -->
+    <div id="regulatoryModal" class="modal-overlay">
+        <div class="modal-panel">
+            <button class="modal-close" onclick="closeReferenceModal()">×</button>
+            <div class="modal-header">
+                <h2 id="modalTitle" class="modal-title"></h2>
+                <p id="modalMeta" class="modal-meta"></p>
+            </div>
+            <div class="modal-content">
+                <div class="modal-section">
+                    <div id="modalExcerpt" class="modal-excerpt"></div>
+                </div>
+                <div id="modalKeypoints" class="modal-keypoints"></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
