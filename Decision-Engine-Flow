@@ -187,38 +187,96 @@
             display: block;
         }
 
+        /* Two-Column Layout for Full View */
+        .two-column-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 20px;
+        }
+
+        .column {
+            background: #fafafa;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #e8e8e8;
+        }
+
+        .column-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 3px solid;
+        }
+
+        .column-header.sa {
+            border-bottom-color: var(--green-500);
+        }
+
+        .column-header.irb {
+            border-bottom-color: var(--blue-500);
+        }
+
+        .column-header h3 {
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .column-header .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .column-header.sa .badge {
+            background: #d4f1d4;
+            color: #2d7a2d;
+        }
+
+        .column-header.irb .badge {
+            background: #d4e8f1;
+            color: #2d5f7a;
+        }
+
         .flow-diagram {
             margin: 20px 0;
         }
 
         .flow-section {
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .flow-section h3 {
-            margin: 0 0 16px 0;
-            font-size: 16px;
+            margin: 0 0 12px 0;
+            font-size: 14px;
             color: #333;
             border-left: 4px solid var(--teal-500);
             padding-left: 12px;
+            font-weight: 600;
         }
 
         .flow-boxes {
             display: flex;
-            gap: 20px;
+            gap: 16px;
             flex-wrap: wrap;
             justify-content: flex-start;
-            margin-left: 20px;
+            margin-left: 0;
         }
 
         .flow-box {
-            flex: 0 1 calc(50% - 10px);
-            min-width: 250px;
-            padding: 14px;
+            flex: 0 1 100%;
+            padding: 12px;
             border-radius: 6px;
             border: 2px solid #ddd;
             background: #fafafa;
-            font-size: 13px;
+            font-size: 12px;
             line-height: 1.4;
         }
 
@@ -246,7 +304,7 @@
             display: block;
             margin-bottom: 6px;
             color: #222;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .reference-label {
@@ -255,7 +313,7 @@
             color: var(--teal-500);
             padding: 2px 6px;
             border-radius: 3px;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 500;
             margin-top: 6px;
             cursor: pointer;
@@ -517,11 +575,13 @@
             margin-right: 6px;
         }
 
-        @media (max-width: 768px) {
-            .flow-boxes {
-                flex-direction: column;
+        @media (max-width: 1200px) {
+            .two-column-layout {
+                grid-template-columns: 1fr;
             }
+        }
 
+        @media (max-width: 768px) {
             .flow-box {
                 flex: 1 1 100%;
             }
@@ -532,6 +592,7 @@
 
             .button-group {
                 gap: 8px;
+                flex-wrap: wrap;
             }
 
             button {
@@ -542,6 +603,14 @@
             .modal-panel {
                 max-width: 90vw;
                 padding: 20px;
+            }
+
+            .column {
+                padding: 16px;
+            }
+
+            .flow-box {
+                font-size: 11px;
             }
         }
     </style>
@@ -597,7 +666,7 @@
         <div class="controls">
             <h2>Select View</h2>
             <div class="button-group">
-                <button class="btn-primary active" onclick="switchView('full')">Complete Decision Tree</button>
+                <button class="btn-primary active" onclick="switchView('full')">Complete Decision Tree (Split View)</button>
                 <button class="btn-secondary" onclick="switchView('sa')">Standardized Approach Only</button>
                 <button class="btn-secondary" onclick="switchView('irb')">IRB Approach Only</button>
                 <button class="btn-secondary" onclick="switchView('rules')">Rules & Risk Weights</button>
@@ -605,155 +674,231 @@
             </div>
         </div>
 
-        <!-- FULL VIEW -->
+        <!-- FULL VIEW - TWO COLUMN LAYOUT -->
         <div id="fullView" class="content-panel active">
-            <h2>Complete Basel 3.1 RWA Decision Flow</h2>
+            <h2>Complete Basel 3.1 RWA Decision Flow - Side by Side Comparison</h2>
 
             <div class="info-box">
                 💡 <strong>Decision Path:</strong> Risk Exposure → Select Approach (SA or IRB) → Select Exposure Class → Apply Risk Weight or IRB Formula → Calculate RWA
             </div>
 
-            <div class="flow-diagram">
-                <div class="flow-section">
-                    <h3>🎯 Level 1: Approach Selection</h3>
-                    <div class="flow-boxes">
-                        <div class="flow-box sa">
-                            <strong>Standardized Approach (SA)</strong>
-                            Pre-defined risk weights by exposure class and rating<br>
-                            <span class="reference-label" onclick="showModal(event)">SA-CR30.34-30.71</span>
+            <div class="two-column-layout">
+                <!-- LEFT COLUMN: STANDARDIZED APPROACH -->
+                <div class="column">
+                    <div class="column-header sa">
+                        <h3>📊 Standardized Approach (SA)<span class="badge">All 11 Classes</span></h3>
+                    </div>
+
+                    <div class="flow-diagram">
+                        <div class="flow-section">
+                            <h3>Level 1: Approach</h3>
+                            <div class="flow-boxes">
+                                <div class="flow-box sa">
+                                    <strong>Standardized Approach</strong>
+                                    Pre-defined risk weights by exposure class and rating<br>
+                                    <span class="reference-label" onclick="showModal(event)">SA-CR30.34-30.71</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flow-box irb">
-                            <strong>IRB Approach (FIRB/AIRB)</strong>
-                            Internal model with PD, LGD, EAD, Maturity parameters<br>
-                            <span class="reference-label" onclick="showModal(event)">CRE31.6-31.13</span>
+
+                        <div class="flow-section">
+                            <h3>Level 2: 11 Exposure Classes</h3>
+                            <div class="flow-boxes">
+                                <div class="flow-box sa">
+                                    <strong>1. Central Government</strong>
+                                    RW: 0%<br>
+                                    <span class="reference-label" onclick="showModal(event)">CRE31.1</span>
+                                </div>
+                                <div class="flow-box sa">
+                                    <strong>2. Institutions</strong>
+                                    CQS2: 30% ⭐ (was 50%)<br>
+                                    <span class="reference-label" onclick="showModal(event)">SA-CR30.41</span>
+                                </div>
+                                <div class="flow-box sa">
+                                    <strong>3. Corporate (Rated)</strong>
+                                    CQS3: 75% ⭐ (was 100%)<br>
+                                    <span class="reference-label" onclick="showModal(event)">SA-CR30.48</span>
+                                </div>
+                                <div class="flow-box sa">
+                                    <strong>4. Corporate (Unrated)</strong>
+                                    IG: 65% ⭐ (NEW)<br>
+                                    <span class="reference-label" onclick="showModal(event)">SA-CR30.50</span>
+                                </div>
+                                <div class="flow-box sa">
+                                    <strong>5. SME (Unrated)</strong>
+                                    RW: 85% (factor removed ⭐)<br>
+                                    <span class="reference-label" onclick="showModal(event)">SA-CR30.50</span>
+                                </div>
+                                <div class="flow-box sa">
+                                    <strong>6. Retail - Mortgages</strong>
+                                    LTV Buckets: 20%-105% ⭐<br>
+                                    <span class="reference-label" onclick="showModal(event)">SA-CR30.61</span>
+                                </div>
+                                <div class="flow-box sa">
+                                    <strong>7. Retail - Other (Transactor)</strong>
+                                    RW: 45%<br>
+                                    <span class="reference-label" onclick="showModal(event)">SA-CR30.62</span>
+                                </div>
+                                <div class="flow-box sa">
+                                    <strong>8. Retail - Other (Non-transactor)</strong>
+                                    75% / 112.5% (1.5x for MM) ⭐<br>
+                                    <span class="reference-label" onclick="showModal(event)">SA-CR30.62</span>
+                                </div>
+                                <div class="flow-box sa">
+                                    <strong>9. CRE Mortgages</strong>
+                                    RW: 60%-150% (floor removed ⭐)<br>
+                                    <span class="reference-label" onclick="showModal(event)">SA-CR30.64</span>
+                                </div>
+                                <div class="flow-box restriction">
+                                    <strong>10. Equity (Listed)</strong>
+                                    RW: 290%<br>
+                                    <span class="reference-label" onclick="showModal(event)">SA-CR30.71</span>
+                                </div>
+                                <div class="flow-box restriction">
+                                    <strong>11. Equity (Private)</strong>
+                                    190%-370% by holding period<br>
+                                    <span class="reference-label" onclick="showModal(event)">SA-CR30.71</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flow-section">
+                            <h3>Level 3: Direct to Calculation</h3>
+                            <div class="flow-boxes">
+                                <div class="flow-box sa">
+                                    <strong>No Restrictions</strong>
+                                    All classes use SA RW directly, no IRB option checks needed<br>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flow-section">
+                            <h3>Level 4: RWA Calculation</h3>
+                            <div class="flow-boxes">
+                                <div class="flow-box">
+                                    <strong>RWA = Exposure × Risk Weight %</strong>
+                                    Simple multiplication of exposure by pre-defined RW<br>
+                                    <span class="reference-label" onclick="showModal(event)">SA-CR30.34</span>
+                                </div>
+                                <div class="flow-box">
+                                    <strong>Capital = RWA × 10.5%</strong>
+                                    Pillar 1 (8%) + Buffer (2.5%)<br>
+                                    <span class="reference-label" onclick="showModal(event)">CRE31.2</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="flow-section">
-                    <h3>📊 Level 2: Exposure Class (11 Classes)</h3>
-                    <div class="flow-boxes">
-                        <div class="flow-box sa">
-                            <strong>1. Central Government & Central Bank</strong>
-                            RW: 0% (domestic currency)<br>
-                            <span class="reference-label" onclick="showModal(event)">CRE31.1</span>
-                        </div>
-                        <div class="flow-box sa">
-                            <strong>2. Institutions</strong>
-                            CQS 1: 20% | CQS 2: 30% ⭐ (was 50%) | CQS 3-6: 50%-150%<br>
-                            <span class="reference-label" onclick="showModal(event)">SA-CR30.41</span>
-                        </div>
-                        <div class="flow-box sa">
-                            <strong>3. Corporate (Rated)</strong>
-                            CQS 1: 20% | CQS 3: 75% ⭐ (was 100%) | CQS 4-6: 100%-150%<br>
-                            <span class="reference-label" onclick="showModal(event)">SA-CR30.48</span>
-                        </div>
-                        <div class="flow-box sa">
-                            <strong>4. Corporate (Unrated)</strong>
-                            Investment Grade: 65% ⭐ (NEW) | Non-IG: 135%<br>
-                            <span class="reference-label" onclick="showModal(event)">SA-CR30.50</span>
-                        </div>
-                        <div class="flow-box sa">
-                            <strong>5. SME (Unrated)</strong>
-                            RW: 85% (SME support factor removed ⭐)<br>
-                            <span class="reference-label" onclick="showModal(event)">SA-CR30.50</span>
-                        </div>
-                        <div class="flow-box sa">
-                            <strong>6. Retail - Mortgages</strong>
-                            5 LTV Buckets: 20% / 30% / 40% / 50% / 105% ⭐ (NEW range)<br>
-                            <span class="reference-label" onclick="showModal(event)">SA-CR30.61</span>
-                        </div>
-                        <div class="flow-box sa">
-                            <strong>7. Retail - Other (Transactor)</strong>
-                            RW: 45%<br>
-                            <span class="reference-label" onclick="showModal(event)">SA-CR30.62</span>
-                        </div>
-                        <div class="flow-box sa">
-                            <strong>8. Retail - Other (Non-transactor)</strong>
-                            Base: 75% | Currency Mismatch: 112.5% ⭐ (1.5x multiplier)<br>
-                            <span class="reference-label" onclick="showModal(event)">SA-CR30.62</span>
-                        </div>
-                        <div class="flow-box sa">
-                            <strong>9. Commercial Real Estate</strong>
-                            RW: 60%-150% (100% floor removed ⭐)<br>
-                            <span class="reference-label" onclick="showModal(event)">SA-CR30.64</span>
-                        </div>
-                        <div class="flow-box restriction">
-                            <strong>10. Equity (Listed)</strong>
-                            RW: 290% | All IRB PROHIBITED ⭐<br>
-                            <span class="reference-label" onclick="showModal(event)">SA-CR30.71</span>
-                        </div>
-                        <div class="flow-box restriction">
-                            <strong>11. Equity (Private)</strong>
-                            5-10y: 190% | 10-15y: 290% | &gt;15y: 370% | All IRB PROHIBITED ⭐<br>
-                            <span class="reference-label" onclick="showModal(event)">SA-CR30.71</span>
-                        </div>
+                <!-- RIGHT COLUMN: IRB APPROACH -->
+                <div class="column">
+                    <div class="column-header irb">
+                        <h3>🔬 IRB Approach (FIRB/AIRB)<span class="badge">Restricted Classes</span></h3>
                     </div>
-                </div>
 
-                <div class="flow-section">
-                    <h3>⚙️ Level 3: IRB Restrictions & FIRB/AIRB Availability</h3>
-                    <div class="flow-boxes">
-                        <div class="flow-box restriction">
-                            <strong>Gov/CB: IRB PROHIBITED</strong>
-                            Standardized Approach only<br>
-                            <span class="reference-label" onclick="showModal(event)">CRE31.1</span>
+                    <div class="flow-diagram">
+                        <div class="flow-section">
+                            <h3>Level 1: Approach</h3>
+                            <div class="flow-boxes">
+                                <div class="flow-box irb">
+                                    <strong>IRB Approach</strong>
+                                    Internal model with PD, LGD, EAD, Maturity parameters<br>
+                                    <span class="reference-label" onclick="showModal(event)">CRE31.6-31.13</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flow-box irb">
-                            <strong>Institutions: FIRB Only ⭐</strong>
-                            AIRB removed in Basel 3.1<br>
-                            <span class="reference-label" onclick="showModal(event)">CRE31.6</span>
-                        </div>
-                        <div class="flow-box irb">
-                            <strong>Large Corporates: FIRB Only ⭐</strong>
-                            AIRB removed in Basel 3.1<br>
-                            <span class="reference-label" onclick="showModal(event)">CRE31.6</span>
-                        </div>
-                        <div class="flow-box irb">
-                            <strong>SME Corporates: FIRB & AIRB</strong>
-                            Both approaches available<br>
-                            <span class="reference-label" onclick="showModal(event)">CRE31.8</span>
-                        </div>
-                        <div class="flow-box irb">
-                            <strong>Retail - Mortgages: AIRB Only</strong>
-                            FIRB not available<br>
-                            <span class="reference-label" onclick="showModal(event)">CRE31.10</span>
-                        </div>
-                        <div class="flow-box irb">
-                            <strong>Retail - Other: FIRB & AIRB</strong>
-                            Both approaches available<br>
-                            <span class="reference-label" onclick="showModal(event)">CRE31.10</span>
-                        </div>
-                        <div class="flow-box restriction">
-                            <strong>Equity: All IRB PROHIBITED ⭐</strong>
-                            Standardized Approach only<br>
-                            <span class="reference-label" onclick="showModal(event)">CRE31.13</span>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="flow-section">
-                    <h3>📈 Level 4: RWA Calculation & Output Floor</h3>
-                    <div class="flow-boxes">
-                        <div class="flow-box">
-                            <strong>Standardized: RWA = Exposure × Risk Weight %</strong>
-                            Simple multiplication of exposure amount by pre-defined risk weight<br>
-                            <span class="reference-label" onclick="showModal(event)">SA-CR30.34</span>
+                        <div class="flow-section">
+                            <h3>Level 2: IRB Availability</h3>
+                            <div class="flow-boxes">
+                                <div class="flow-box restriction">
+                                    <strong>Central Government</strong>
+                                    IRB PROHIBITED → Use SA<br>
+                                    <span class="reference-label" onclick="showModal(event)">CRE31.1</span>
+                                </div>
+                                <div class="flow-box irb">
+                                    <strong>Institutions</strong>
+                                    FIRB Only ⭐ (AIRB removed)<br>
+                                    <span class="reference-label" onclick="showModal(event)">CRE31.6</span>
+                                </div>
+                                <div class="flow-box irb">
+                                    <strong>Large Corporates</strong>
+                                    FIRB Only ⭐ (AIRB removed)<br>
+                                    <span class="reference-label" onclick="showModal(event)">CRE31.6</span>
+                                </div>
+                                <div class="flow-box irb">
+                                    <strong>Financial Corporates</strong>
+                                    FIRB Only ⭐ (AIRB removed)<br>
+                                    <span class="reference-label" onclick="showModal(event)">CRE31.6</span>
+                                </div>
+                                <div class="flow-box irb">
+                                    <strong>SME Corporates</strong>
+                                    FIRB & AIRB Both Available<br>
+                                    <span class="reference-label" onclick="showModal(event)">CRE31.8</span>
+                                </div>
+                                <div class="flow-box irb">
+                                    <strong>Retail - Mortgages</strong>
+                                    AIRB Only (FIRB not available)<br>
+                                    <span class="reference-label" onclick="showModal(event)">CRE31.10</span>
+                                </div>
+                                <div class="flow-box irb">
+                                    <strong>Retail - Other</strong>
+                                    FIRB & AIRB Both Available<br>
+                                    <span class="reference-label" onclick="showModal(event)">CRE31.10</span>
+                                </div>
+                                <div class="flow-box restriction">
+                                    <strong>Equity</strong>
+                                    All IRB PROHIBITED ⭐ → Use SA<br>
+                                    <span class="reference-label" onclick="showModal(event)">CRE31.13</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flow-box irb">
-                            <strong>IRB: Complex Formula with PD, LGD, EAD, Maturity</strong>
-                            RW = (LGD × G(PD + √ρ × G(0.999))) × adjustments<br>
-                            <span class="reference-label" onclick="showModal(event)">CRE31.9</span>
+
+                        <div class="flow-section">
+                            <h3>Level 3: IRB Parameters</h3>
+                            <div class="flow-boxes">
+                                <div class="flow-box irb">
+                                    <strong>PD Floor: 0.03%</strong>
+                                    Minimum probability of default<br>
+                                    <span class="reference-label" onclick="showModal(event)">CRE31.22</span>
+                                </div>
+                                <div class="flow-box irb">
+                                    <strong>LGD Floor: 45% (Unsecured)</strong>
+                                    Minimum loss given default<br>
+                                    <span class="reference-label" onclick="showModal(event)">CRE31.23</span>
+                                </div>
+                                <div class="flow-box irb">
+                                    <strong>Maturity: 1-5 Years</strong>
+                                    M floor at 1y, ceiling at 5y<br>
+                                    <span class="reference-label" onclick="showModal(event)">CRE31.25</span>
+                                </div>
+                                <div class="flow-box irb">
+                                    <strong>Asset Correlation: 1.25%-12%</strong>
+                                    Based on PD and class<br>
+                                    <span class="reference-label" onclick="showModal(event)">CRE31.18-20</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flow-box change">
-                            <strong>Output Floor: IRB RWA ≥ 72.5% of SA RWA ⭐</strong>
-                            Transitional: Y1=50%, Y2=60%, Y3=70%, Y4=80%, Y5+=72.5%<br>
-                            <span class="reference-label" onclick="showModal(event)">Basel 3.1</span>
-                        </div>
-                        <div class="flow-box">
-                            <strong>Capital Requirement = RWA × 10.5%</strong>
-                            Pillar 1 (8%) + Capital Buffer (2.5%) = Minimum Required<br>
-                            <span class="reference-label" onclick="showModal(event)">CRE31.2</span>
+
+                        <div class="flow-section">
+                            <h3>Level 4: RWA Calculation</h3>
+                            <div class="flow-boxes">
+                                <div class="flow-box irb">
+                                    <strong>Vasicek Formula</strong>
+                                    RW = f(PD, LGD, EAD, M, ρ)<br>
+                                    <span class="reference-label" onclick="showModal(event)">CRE31.9</span>
+                                </div>
+                                <div class="flow-box change">
+                                    <strong>Output Floor: ≥72.5% of SA RWA ⭐</strong>
+                                    Y5+ implementation, transitional Y1-4<br>
+                                    <span class="reference-label" onclick="showModal(event)">Basel 3.1</span>
+                                </div>
+                                <div class="flow-box">
+                                    <strong>Capital = RWA × 10.5%</strong>
+                                    After floor applied<br>
+                                    <span class="reference-label" onclick="showModal(event)">CRE31.2</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1614,6 +1759,7 @@ Output Floor Requirement:
         window.addEventListener('load', function() {
             console.log('✅ Basel 3.1 RWA Decision Engine loaded');
             console.log('📖 All 23+ regulatory references enabled with modal pop-ups');
+            console.log('📊 Complete Decision Tree now shows Split View (SA vs IRB side by side)');
         });
     </script>
 </body>
