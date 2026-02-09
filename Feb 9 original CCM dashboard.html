@@ -1,0 +1,2769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit & Capital Management Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1e40af;
+            --primary-dark: #1e3a8a;
+            --primary-light: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark-bg: #0f172a;
+            --light-bg: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            height: 100vh;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            background: var(--dark-bg);
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .nav-section {
+            margin-bottom: 25px;
+        }
+
+        .nav-section-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-item {
+            padding: 10px 12px;
+            margin-bottom: 5px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .nav-item.active {
+            background: var(--primary);
+            border-left-color: var(--primary-light);
+            font-weight: 600;
+        }
+
+        /* MAIN CONTENT */
+        .main {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: var(--card-bg);
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--border);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .header-title p {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background: var(--border);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e1;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+        }
+
+        /* KPI CARDS */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .kpi-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+
+        .kpi-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: var(--primary);
+        }
+
+        .kpi-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .kpi-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .kpi-metric {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .kpi-delta {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        .kpi-delta.positive {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .kpi-delta.negative {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        /* CHARTS & SECTIONS */
+        .section {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        /* TABLE STYLES */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: var(--light-bg);
+            padding: 12px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--border);
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        tr:hover {
+            background: rgba(30, 64, 175, 0.02);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+
+        .badge-info {
+            background: rgba(30, 64, 175, 0.15);
+            color: var(--primary);
+        }
+
+        /* HEATMAP */
+        .heatmap {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .heatmap-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .heatmap-label {
+            min-width: 120px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .heatmap-cell {
+            flex: 1;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+            color: white;
+        }
+
+        .heat-0 { background: #ecfdf5; color: #047857; }
+        .heat-1 { background: #dcfce7; color: #15803d; }
+        .heat-2 { background: #bbf7d0; color: #059669; }
+        .heat-3 { background: #6ee7b7; color: #065f46; }
+        .heat-4 { background: #fef3c7; color: #92400e; }
+        .heat-5 { background: #fde68a; color: #78350f; }
+        .heat-6 { background: #fcd34d; color: #713f12; }
+        .heat-7 { background: #fbbf24; color: #78350f; }
+        .heat-8 { background: #f59e0b; color: #fff; }
+        .heat-9 { background: #ea580c; color: #fff; }
+        .heat-10 { background: #dc2626; color: #fff; }
+
+        /* TABS */
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            color: var(--text-secondary);
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            color: var(--primary);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* RESPONSIVE - TABLET & LANDSCAPE */
+        @media (max-width: 1200px) {
+            .grid-3 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .kpi-grid {
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            }
+            .content {
+                padding: 20px;
+            }
+        }
+
+        /* RESPONSIVE - TABLET & SMALLER */
+        @media (max-width: 1024px) {
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+            .kpi-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+            table {
+                font-size: 12px;
+            }
+            td, th {
+                padding: 8px;
+            }
+        }
+
+        /* RESPONSIVE - MOBILE LANDSCAPE */
+        @media (max-width: 896px) {
+            .sidebar {
+                position: fixed;
+                left: -250px;
+                top: 0;
+                height: 100vh;
+                z-index: 999;
+                transition: left 0.3s;
+                overflow-y: auto;
+            }
+
+            .sidebar.open {
+                left: 0;
+                box-shadow: 2px 0 8px rgba(0,0,0,0.2);
+            }
+
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .main {
+                position: relative;
+            }
+
+            .header {
+                padding: 15px 20px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .header-title h1 {
+                font-size: 20px;
+            }
+
+            .header-title p {
+                font-size: 12px;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
+            .content {
+                padding: 15px;
+            }
+
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+
+            .kpi-card {
+                padding: 15px;
+            }
+
+            .kpi-value {
+                font-size: 24px;
+            }
+
+            .kpi-label {
+                font-size: 11px;
+            }
+
+            .kpi-metric {
+                font-size: 11px;
+            }
+
+            .section {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+
+            .section-title {
+                font-size: 14px;
+                margin-bottom: 15px;
+            }
+
+            .chart-container {
+                height: 250px;
+            }
+
+            table {
+                font-size: 11px;
+            }
+
+            th {
+                padding: 8px;
+                font-size: 10px;
+            }
+
+            td {
+                padding: 8px;
+                font-size: 11px;
+            }
+
+            .badge {
+                font-size: 10px;
+                padding: 3px 6px;
+            }
+
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .heatmap-label {
+                min-width: 100px;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+                margin-bottom: 15px;
+            }
+
+            .tab {
+                padding: 10px 15px;
+                font-size: 12px;
+            }
+        }
+
+        /* RESPONSIVE - MOBILE PORTRAIT */
+        @media (max-width: 640px) {
+            :root {
+                font-size: 14px;
+            }
+
+            .sidebar {
+                width: 200px;
+            }
+
+            .logo {
+                font-size: 16px;
+                margin-bottom: 20px;
+                padding-bottom: 15px;
+            }
+
+            .nav-section-title {
+                font-size: 11px;
+            }
+
+            .nav-item {
+                padding: 8px 10px;
+                font-size: 13px;
+                margin-bottom: 3px;
+            }
+
+            .header {
+                padding: 12px 15px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start;
+            }
+
+            .header-title h1 {
+                font-size: 18px;
+                margin-bottom: 3px;
+            }
+
+            .header-title p {
+                font-size: 11px;
+            }
+
+            .header-actions {
+                width: 100%;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .btn {
+                padding: 6px 10px;
+                font-size: 11px;
+                flex: 1;
+                min-width: 100px;
+            }
+
+            .content {
+                padding: 12px;
+                overflow-y: auto;
+            }
+
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+                margin-bottom: 20px;
+            }
+
+            .kpi-card {
+                padding: 12px;
+                border-radius: 6px;
+            }
+
+            .kpi-card:hover {
+                box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            }
+
+            .kpi-label {
+                font-size: 10px;
+                margin-bottom: 6px;
+            }
+
+            .kpi-value {
+                font-size: 20px;
+                margin-bottom: 6px;
+            }
+
+            .kpi-metric {
+                font-size: 10px;
+            }
+
+            .kpi-delta {
+                font-size: 9px;
+                padding: 1px 4px;
+            }
+
+            .section {
+                padding: 12px;
+                margin-bottom: 12px;
+                border-radius: 6px;
+            }
+
+            .section-title {
+                font-size: 13px;
+                margin-bottom: 12px;
+                flex-wrap: wrap;
+            }
+
+            .chart-container {
+                height: 200px;
+                margin-bottom: 15px;
+            }
+
+            table {
+                width: 100%;
+                font-size: 10px;
+            }
+
+            th {
+                padding: 6px;
+                font-size: 9px;
+                letter-spacing: 0.3px;
+            }
+
+            td {
+                padding: 6px;
+                font-size: 10px;
+            }
+
+            tr:hover {
+                background: rgba(30, 64, 175, 0.01);
+            }
+
+            .badge {
+                font-size: 9px;
+                padding: 2px 5px;
+            }
+
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .heatmap-label {
+                min-width: 80px;
+                font-size: 10px;
+            }
+
+            .heatmap-cell {
+                padding: 6px;
+                font-size: 9px;
+            }
+
+            .heatmap-row {
+                gap: 6px;
+            }
+
+            .tabs {
+                gap: 0;
+                margin-bottom: 12px;
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .tab {
+                padding: 8px 12px;
+                font-size: 11px;
+                white-space: nowrap;
+            }
+
+            .tab-content {
+                display: none;
+            }
+
+            .tab-content.active {
+                display: block;
+            }
+        }
+
+        /* RESPONSIVE - SMALL MOBILE */
+        @media (max-width: 480px) {
+            :root {
+                font-size: 13px;
+            }
+
+            .header {
+                padding: 10px 12px;
+            }
+
+            .header-title h1 {
+                font-size: 16px;
+            }
+
+            .header-title p {
+                font-size: 10px;
+            }
+
+            .btn {
+                padding: 5px 8px;
+                font-size: 10px;
+            }
+
+            .content {
+                padding: 10px;
+            }
+
+            .kpi-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .kpi-card {
+                padding: 10px;
+            }
+
+            .kpi-value {
+                font-size: 18px;
+            }
+
+            .kpi-label {
+                font-size: 9px;
+            }
+
+            .section {
+                padding: 10px;
+                margin-bottom: 10px;
+            }
+
+            .section-title {
+                font-size: 12px;
+                margin-bottom: 10px;
+            }
+
+            .chart-container {
+                height: 180px;
+            }
+
+            table {
+                font-size: 9px;
+            }
+
+            th, td {
+                padding: 5px;
+            }
+
+            th {
+                font-size: 8px;
+            }
+
+            .badge {
+                font-size: 8px;
+                padding: 2px 4px;
+            }
+
+            .heatmap-label {
+                min-width: 70px;
+                font-size: 9px;
+            }
+
+            .heatmap-cell {
+                padding: 4px;
+                font-size: 8px;
+            }
+
+            .tab {
+                padding: 6px 10px;
+                font-size: 10px;
+            }
+        }
+
+        /* UTILITY - HIDE ELEMENTS ON MOBILE */
+        @media (max-width: 896px) {
+            .header-actions button:last-child {
+                display: none;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .header-actions button {
+                display: none;
+            }
+        }
+
+        /* MOBILE MENU TOGGLE BUTTON */
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1000;
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s;
+        }
+
+        .menu-toggle:active {
+            transform: scale(0.95);
+        }
+
+        /* RESPONSIVE - TABLET & LANDSCAPE */
+        @media (max-width: 1200px) {
+            .grid-3 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .kpi-grid {
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            }
+            .content {
+                padding: 20px;
+            }
+        }
+
+        /* RESPONSIVE - TABLET & SMALLER */
+        @media (max-width: 1024px) {
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+            .kpi-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+            table {
+                font-size: 12px;
+            }
+            td, th {
+                padding: 8px;
+            }
+        }
+
+        /* RESPONSIVE - MOBILE LANDSCAPE */
+        @media (max-width: 896px) {
+            .menu-toggle {
+                display: block;
+            }
+
+            .sidebar {
+                position: fixed;
+                left: -250px;
+                top: 0;
+                height: 100vh;
+                z-index: 999;
+                transition: left 0.3s ease;
+                overflow-y: auto;
+                border-right: 1px solid rgba(255,255,255,0.1);
+            }
+
+            .sidebar.open {
+                left: 0;
+                box-shadow: 2px 0 12px rgba(0,0,0,0.3);
+            }
+
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .main {
+                position: relative;
+            }
+
+            .header {
+                padding: 12px 15px;
+                padding-left: 55px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start;
+            }
+
+            .header-title h1 {
+                font-size: 20px;
+                margin-bottom: 2px;
+            }
+
+            .header-title p {
+                font-size: 12px;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: flex-start;
+                gap: 8px;
+            }
+
+            .btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
+            .content {
+                padding: 15px;
+            }
+
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+                margin-bottom: 20px;
+            }
+
+            .kpi-card {
+                padding: 12px;
+            }
+
+            .kpi-value {
+                font-size: 22px;
+            }
+
+            .kpi-label {
+                font-size: 11px;
+                margin-bottom: 6px;
+            }
+
+            .kpi-metric {
+                font-size: 11px;
+            }
+
+            .section {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+
+            .section-title {
+                font-size: 14px;
+                margin-bottom: 15px;
+            }
+
+            .chart-container {
+                height: 250px;
+                margin-bottom: 15px;
+            }
+
+            table {
+                font-size: 11px;
+            }
+
+            th {
+                padding: 8px;
+                font-size: 10px;
+            }
+
+            td {
+                padding: 8px;
+                font-size: 11px;
+            }
+
+            .badge {
+                font-size: 10px;
+                padding: 3px 6px;
+            }
+
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .heatmap-label {
+                min-width: 100px;
+                font-size: 11px;
+            }
+
+            .heatmap-cell {
+                font-size: 10px;
+                padding: 6px;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+                margin-bottom: 15px;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .tab {
+                padding: 10px 15px;
+                font-size: 12px;
+                white-space: nowrap;
+            }
+        }
+
+        /* RESPONSIVE - MOBILE PORTRAIT */
+        @media (max-width: 640px) {
+            .header {
+                padding: 10px 15px;
+                padding-left: 50px;
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .header-title h1 {
+                font-size: 18px;
+                margin-bottom: 2px;
+            }
+
+            .header-title p {
+                font-size: 11px;
+            }
+
+            .header-actions {
+                width: 100%;
+                gap: 6px;
+            }
+
+            .header-actions button {
+                flex: 1;
+                min-width: 80px;
+                padding: 6px 8px;
+                font-size: 11px;
+            }
+
+            .content {
+                padding: 12px;
+            }
+
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+                margin-bottom: 15px;
+            }
+
+            .kpi-card {
+                padding: 10px;
+            }
+
+            .kpi-card:hover {
+                box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            }
+
+            .kpi-label {
+                font-size: 10px;
+                margin-bottom: 5px;
+            }
+
+            .kpi-value {
+                font-size: 20px;
+                margin-bottom: 5px;
+            }
+
+            .kpi-metric {
+                font-size: 10px;
+            }
+
+            .kpi-delta {
+                font-size: 9px;
+                padding: 1px 4px;
+            }
+
+            .section {
+                padding: 12px;
+                margin-bottom: 12px;
+            }
+
+            .section-title {
+                font-size: 13px;
+                margin-bottom: 12px;
+            }
+
+            .chart-container {
+                height: 200px;
+                margin-bottom: 15px;
+            }
+
+            table {
+                font-size: 10px;
+                width: 100%;
+                overflow-x: auto;
+            }
+
+            th {
+                padding: 6px;
+                font-size: 9px;
+                letter-spacing: 0.3px;
+            }
+
+            td {
+                padding: 6px;
+                font-size: 10px;
+            }
+
+            .badge {
+                font-size: 9px;
+                padding: 2px 5px;
+            }
+
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .heatmap-label {
+                min-width: 75px;
+                font-size: 10px;
+            }
+
+            .heatmap-cell {
+                padding: 6px;
+                font-size: 9px;
+            }
+
+            .heatmap-row {
+                gap: 6px;
+            }
+
+            .tabs {
+                gap: 0;
+                margin-bottom: 12px;
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                -webkit-overflow-scrolling: touch;
+                border-bottom: 2px solid var(--border);
+            }
+
+            .tab {
+                padding: 8px 12px;
+                font-size: 11px;
+                white-space: nowrap;
+            }
+
+            .sidebar {
+                width: 200px;
+            }
+
+            .logo {
+                font-size: 15px;
+                margin-bottom: 15px;
+                padding-bottom: 15px;
+            }
+
+            .nav-section-title {
+                font-size: 10px;
+                margin-bottom: 8px;
+            }
+
+            .nav-item {
+                padding: 8px 10px;
+                font-size: 13px;
+                margin-bottom: 3px;
+            }
+        }
+
+        /* RESPONSIVE - SMALL MOBILE */
+        @media (max-width: 480px) {
+            .header {
+                padding: 8px 12px;
+                padding-left: 48px;
+            }
+
+            .header-title h1 {
+                font-size: 16px;
+            }
+
+            .header-title p {
+                font-size: 10px;
+                margin-bottom: 0;
+            }
+
+            .header-actions {
+                flex-direction: column;
+                gap: 6px;
+            }
+
+            .header-actions button {
+                width: 100%;
+                padding: 5px 8px;
+                font-size: 10px;
+            }
+
+            .content {
+                padding: 10px;
+            }
+
+            .kpi-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+                margin-bottom: 12px;
+            }
+
+            .kpi-card {
+                padding: 10px;
+            }
+
+            .kpi-value {
+                font-size: 18px;
+                margin-bottom: 4px;
+            }
+
+            .kpi-label {
+                font-size: 9px;
+                margin-bottom: 4px;
+            }
+
+            .kpi-metric {
+                font-size: 9px;
+            }
+
+            .section {
+                padding: 10px;
+                margin-bottom: 10px;
+            }
+
+            .section-title {
+                font-size: 12px;
+                margin-bottom: 10px;
+            }
+
+            .chart-container {
+                height: 180px;
+                margin-bottom: 12px;
+            }
+
+            table {
+                font-size: 9px;
+                width: 100%;
+                display: block;
+                overflow-x: auto;
+            }
+
+            th, td {
+                padding: 5px;
+            }
+
+            th {
+                font-size: 8px;
+            }
+
+            td {
+                font-size: 9px;
+            }
+
+            .badge {
+                font-size: 8px;
+                padding: 2px 4px;
+            }
+
+            .heatmap-label {
+                min-width: 65px;
+                font-size: 9px;
+            }
+
+            .heatmap-cell {
+                padding: 4px;
+                font-size: 8px;
+            }
+
+            .tab {
+                padding: 6px 10px;
+                font-size: 10px;
+            }
+
+            .menu-toggle {
+                width: 36px;
+                height: 36px;
+                font-size: 18px;
+                top: 12px;
+                left: 12px;
+            }
+        }
+
+        /* HIDE/SHOW ELEMENTS STRATEGICALLY */
+        @media (max-width: 896px) {
+            .header-actions {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .header-actions button:nth-child(2) {
+                display: none;
+            }
+        }
+
+        /* UTILITY */
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .scrollbar-hide {
+            scrollbar-width: none;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <div class="logo">💼 CCM Dashboard</div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <div class="nav-item active" onclick="switchView('dashboard')">📊 Executive Dashboard</div>
+                <div class="nav-item" onclick="switchView('portfolio')">📈 Portfolio Analytics</div>
+                <div class="nav-item" onclick="switchView('customers')">👥 Customer 360</div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Risk & Capital</div>
+                <div class="nav-item" onclick="switchView('risk')">⚠️ Risk Management</div>
+                <div class="nav-item" onclick="switchView('capital')">🏦 Capital Management</div>
+                <div class="nav-item" onclick="switchView('concentration')">🎯 Concentration Risk</div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Business</div>
+                <div class="nav-item" onclick="switchView('origination')">🚀 Origination Pipeline</div>
+                <div class="nav-item" onclick="switchView('securitization')">💰 Securitization</div>
+                <div class="nav-item" onclick="switchView('quality')">✓ Portfolio Quality</div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Analytics</div>
+                <div class="nav-item" onclick="switchView('profitability')">💹 Profitability</div>
+                <div class="nav-item" onclick="switchView('stress')">📉 Stress Testing</div>
+                <div class="nav-item" onclick="switchView('alerts')">🔔 Risk Alerts</div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main">
+            <!-- HEADER -->
+            <div class="header">
+                <div class="header-content">
+                    <div class="header-title">
+                        <h1 id="viewTitle">Executive Dashboard</h1>
+                        <p id="viewDesc">Real-time portfolio overview and key performance indicators</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary">📅 Last 30 Days</button>
+                        <button class="btn btn-primary">📥 Export Report</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTENT -->
+            <div class="content scrollbar-hide">
+
+                <!-- DASHBOARD VIEW -->
+                <div id="dashboard-view" class="view">
+                    <!-- KPI Grid -->
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-label">Total Portfolio Value</div>
+                            <div class="kpi-value">€47.3<span style="font-size: 0.6em;">B</span></div>
+                            <div class="kpi-metric">YoY Growth: <span class="kpi-delta positive">+5.2%</span></div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Risk-Weighted Assets</div>
+                            <div class="kpi-value">€21.2<span style="font-size: 0.6em;">B</span></div>
+                            <div class="kpi-metric">RWA Density: <span class="kpi-delta positive">44.8%</span></div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Capital Ratio</div>
+                            <div class="kpi-value">13.8<span style="font-size: 0.6em;">%</span></div>
+                            <div class="kpi-metric">Minimum: <span class="kpi-delta positive">10.5%</span></div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">NPL Ratio</div>
+                            <div class="kpi-value">1.24<span style="font-size: 0.6em;">%</span></div>
+                            <div class="kpi-metric">Coverage: <span class="kpi-delta positive">68%</span></div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Avg RAROC</div>
+                            <div class="kpi-value">8.3<span style="font-size: 0.6em;">%</span></div>
+                            <div class="kpi-metric">Target: <span class="kpi-delta positive">8.5%</span></div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">YTD Revenue</div>
+                            <div class="kpi-value">€1.2<span style="font-size: 0.6em;">B</span></div>
+                            <div class="kpi-metric">NIM: <span class="kpi-delta positive">2.8%</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row 1 -->
+                    <div class="grid-2">
+                        <div class="section">
+                            <div class="section-title">Portfolio Composition by Segment</div>
+                            <div class="chart-container">
+                                <canvas id="segmentChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="section">
+                            <div class="section-title">RWA Breakdown by Basel Approach</div>
+                            <div class="chart-container">
+                                <canvas id="rwaChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Portfolio Quality -->
+                    <div class="section">
+                        <div class="section-title">Portfolio Quality Metrics</div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Metric</th>
+                                    <th>Current</th>
+                                    <th>Previous</th>
+                                    <th>Trend</th>
+                                    <th>Target</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>NPL Ratio</strong></td>
+                                    <td>1.24%</td>
+                                    <td>1.31%</td>
+                                    <td>↓ 7 bps</td>
+                                    <td>&lt;1.5%</td>
+                                    <td><span class="badge badge-success">On Track</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Coverage Ratio</strong></td>
+                                    <td>68%</td>
+                                    <td>65%</td>
+                                    <td>↑ 3pp</td>
+                                    <td>&gt;65%</td>
+                                    <td><span class="badge badge-success">Achieved</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Avg LTV</strong></td>
+                                    <td>58%</td>
+                                    <td>59%</td>
+                                    <td>↓ 1pp</td>
+                                    <td>&lt;60%</td>
+                                    <td><span class="badge badge-success">On Track</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Covenant Breaches</strong></td>
+                                    <td>3</td>
+                                    <td>5</td>
+                                    <td>↓ 2</td>
+                                    <td>0</td>
+                                    <td><span class="badge badge-warning">Monitoring</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Avg PD</strong></td>
+                                    <td>1.18%</td>
+                                    <td>1.15%</td>
+                                    <td>↑ 3 bps</td>
+                                    <td>&lt;1.5%</td>
+                                    <td><span class="badge badge-success">On Track</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Charts Row 2 -->
+                    <div class="grid-2">
+                        <div class="section">
+                            <div class="section-title">Revenue by Segment</div>
+                            <div class="chart-container">
+                                <canvas id="revenueChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="section">
+                            <div class="section-title">Capital Allocation Trend</div>
+                            <div class="chart-container">
+                                <canvas id="capitalChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PORTFOLIO ANALYTICS VIEW -->
+                <div id="portfolio-view" class="view hidden">
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-label">Large Corporate</div>
+                            <div class="kpi-value">€22.1<span style="font-size: 0.6em;">B</span></div>
+                            <div class="kpi-metric">Exposure: 46.7% <span class="kpi-delta positive">↑2.1%</span></div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Mid-Market</div>
+                            <div class="kpi-value">€18.5<span style="font-size: 0.6em;">B</span></div>
+                            <div class="kpi-metric">Exposure: 39.1% <span class="kpi-delta positive">↑1.8%</span></div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">SME</div>
+                            <div class="kpi-value">€6.7<span style="font-size: 0.6em;">B</span></div>
+                            <div class="kpi-metric">Exposure: 14.2% <span class="kpi-delta positive">↑0.3%</span></div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">Segment Performance Dashboard</div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Segment</th>
+                                    <th>Total Exposure</th>
+                                    <th>RWA</th>
+                                    <th>Avg RAROC</th>
+                                    <th>NPL Ratio</th>
+                                    <th>Avg PD</th>
+                                    <th>Customer Count</th>
+                                    <th>Trend</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Large Corporate</strong></td>
+                                    <td>€22.1B</td>
+                                    <td>€11.2B</td>
+                                    <td>8.9%</td>
+                                    <td>0.87%</td>
+                                    <td>0.95%</td>
+                                    <td>187</td>
+                                    <td>↑ Growth</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Mid-Market</strong></td>
+                                    <td>€18.5B</td>
+                                    <td>€8.2B</td>
+                                    <td>8.1%</td>
+                                    <td>1.34%</td>
+                                    <td>1.28%</td>
+                                    <td>892</td>
+                                    <td>↑ Growth</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>SME</strong></td>
+                                    <td>€6.7B</td>
+                                    <td>€1.8B</td>
+                                    <td>7.6%</td>
+                                    <td>2.12%</td>
+                                    <td>2.45%</td>
+                                    <td>3,421</td>
+                                    <td>→ Stable</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="section">
+                            <div class="section-title">Industry Concentration</div>
+                            <div class="chart-container">
+                                <canvas id="industryChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="section">
+                            <div class="section-title">Product Type Distribution</div>
+                            <div class="chart-container">
+                                <canvas id="productChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CUSTOMER 360 VIEW -->
+                <div id="customers-view" class="view hidden">
+                    <div class="section">
+                        <div class="section-title">Top 10 Customers by Exposure</div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Customer Name</th>
+                                    <th>Segment</th>
+                                    <th>Industry</th>
+                                    <th>Total Exposure</th>
+                                    <th>RWA</th>
+                                    <th>Credit Rating</th>
+                                    <th>NPL Status</th>
+                                    <th>Avg RAROC</th>
+                                </tr>
+                            </thead>
+                            <tbody id="topCustomersTable">
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="section">
+                            <div class="section-title">Top 10 by Revenue</div>
+                            <table style="font-size: 12px;">
+                                <thead>
+                                    <tr>
+                                        <th>Customer</th>
+                                        <th>YTD Revenue</th>
+                                        <th>Margin</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="revenueCustomersTable">
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="section">
+                            <div class="section-title">Bottom 5 RAROC Customers</div>
+                            <table style="font-size: 12px;">
+                                <thead>
+                                    <tr>
+                                        <th>Customer</th>
+                                        <th>RAROC</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lowRarocTable">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RISK MANAGEMENT VIEW -->
+                <div id="risk-view" class="view hidden">
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-label">Portfolio PD</div>
+                            <div class="kpi-value">1.18<span style="font-size: 0.6em;">%</span></div>
+                            <div class="kpi-metric">Avg Rating: <span>BBB+</span></div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Avg LGD</div>
+                            <div class="kpi-value">42.5<span style="font-size: 0.6em;">%</span></div>
+                            <div class="kpi-metric">Range: 25% - 60%</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Stress Test Impact</div>
+                            <div class="kpi-value">-2.4<span style="font-size: 0.6em;">pp</span></div>
+                            <div class="kpi-metric">Capital Ratio under stress</div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">Credit Rating Distribution</div>
+                        <div class="chart-container">
+                            <canvas id="ratingChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">Key Risk Indicators (KRIs)</div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>KRI</th>
+                                    <th>Current</th>
+                                    <th>Threshold</th>
+                                    <th>Status</th>
+                                    <th>Trend</th>
+                                    <th>Action Required</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>NPL Ratio > 1.5%</strong></td>
+                                    <td>1.24%</td>
+                                    <td>1.50%</td>
+                                    <td><span class="badge badge-success">✓ Green</span></td>
+                                    <td>↓ Improving</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Top 10 Concentration</strong></td>
+                                    <td>18.5%</td>
+                                    <td>20.0%</td>
+                                    <td><span class="badge badge-success">✓ Green</span></td>
+                                    <td>↑ Slight Increase</td>
+                                    <td>Monitor</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Energy Sector Exposure</strong></td>
+                                    <td>15.2%</td>
+                                    <td>15.0%</td>
+                                    <td><span class="badge badge-warning">⚠ Yellow</span></td>
+                                    <td>↑ Above Limit</td>
+                                    <td>Reduce by 0.5pp</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Covenant Breaches</strong></td>
+                                    <td>3</td>
+                                    <td>5</td>
+                                    <td><span class="badge badge-success">✓ Green</span></td>
+                                    <td>↓ Improving</td>
+                                    <td>Continue Monitoring</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Avg LTV > 70%</strong></td>
+                                    <td>2 customers</td>
+                                    <td>&lt;5 customers</td>
+                                    <td><span class="badge badge-success">✓ Green</span></td>
+                                    <td>↓ Improving</td>
+                                    <td>-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- CAPITAL MANAGEMENT VIEW -->
+                <div id="capital-view" class="view hidden">
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-label">CET1 Ratio</div>
+                            <div class="kpi-value">9.2<span style="font-size: 0.6em;">%</span></div>
+                            <div class="kpi-metric">Minimum: 6.5% | Buffer: 2.7pp</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Tier 1 Ratio</div>
+                            <div class="kpi-value">11.8<span style="font-size: 0.6em;">%</span></div>
+                            <div class="kpi-metric">Minimum: 8.0% | Buffer: 3.8pp</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Total Capital Ratio</div>
+                            <div class="kpi-value">13.8<span style="font-size: 0.6em;">%</span></div>
+                            <div class="kpi-metric">Minimum: 10.5% | Buffer: 3.3pp</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Available Capital</div>
+                            <div class="kpi-value">€3.2<span style="font-size: 0.6em;">B</span></div>
+                            <div class="kpi-metric">For Growth & Distributions</div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">Capital Requirement by Exposure Class</div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Exposure Class</th>
+                                    <th>EAD</th>
+                                    <th>Risk Weight</th>
+                                    <th>RWA</th>
+                                    <th>Capital Required</th>
+                                    <th>% of Total RWA</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Corporates - Standardized</strong></td>
+                                    <td>€8.2B</td>
+                                    <td>100%</td>
+                                    <td>€8.2B</td>
+                                    <td>€656M</td>
+                                    <td>38.7%</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Corporates - IRB Foundation</strong></td>
+                                    <td>€24.1B</td>
+                                    <td>Avg 38%</td>
+                                    <td>€9.2B</td>
+                                    <td>€736M</td>
+                                    <td>43.4%</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Retail</strong></td>
+                                    <td>€8.4B</td>
+                                    <td>Avg 45%</td>
+                                    <td>€3.8B</td>
+                                    <td>€304M</td>
+                                    <td>17.9%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="section">
+                            <div class="section-title">Capital Requirement Trend</div>
+                            <div class="chart-container">
+                                <canvas id="capReqChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="section">
+                            <div class="section-title">Basel Approach Breakdown</div>
+                            <div class="chart-container">
+                                <canvas id="baselApproachChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CONCENTRATION RISK VIEW -->
+                <div id="concentration-view" class="view hidden">
+                    <div class="section">
+                        <div class="section-title">Single-Name Concentration Risk Heatmap</div>
+                        <div class="heatmap" id="concentrationHeatmap">
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="section">
+                            <div class="section-title">Industry Concentration vs Limits</div>
+                            <table style="font-size: 12px;">
+                                <thead>
+                                    <tr>
+                                        <th>Industry</th>
+                                        <th>Exposure</th>
+                                        <th>Limit</th>
+                                        <th>Utilization</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="industryConcentrationTable">
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="section">
+                            <div class="section-title">Geographic Concentration</div>
+                            <table style="font-size: 12px;">
+                                <thead>
+                                    <tr>
+                                        <th>Country</th>
+                                        <th>Exposure</th>
+                                        <th>Limit</th>
+                                        <th>% Portfolio</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="geoConcentrationTable">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ORIGINATION VIEW -->
+                <div id="origination-view" class="view hidden">
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-label">Pipeline Value</div>
+                            <div class="kpi-value">€3.2<span style="font-size: 0.6em;">B</span></div>
+                            <div class="kpi-metric">Deals: 47 | Avg Close: 45 days</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">YTD Origination</div>
+                            <div class="kpi-value">€4.8<span style="font-size: 0.6em;">B</span></div>
+                            <div class="kpi-metric">147 deals | Conversion: 78%</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Avg Margin</div>
+                            <div class="kpi-value">2.8<span style="font-size: 0.6em;">%</span></div>
+                            <div class="kpi-metric">vs Risk: BBB Rating</div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">Active Deal Pipeline</div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Deal Name</th>
+                                    <th>Customer</th>
+                                    <th>Amount</th>
+                                    <th>Product</th>
+                                    <th>Status</th>
+                                    <th>Expected Margin</th>
+                                    <th>Close Date</th>
+                                    <th>Probability</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pipelineTable">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SECURITIZATION VIEW -->
+                <div id="securitization-view" class="view hidden">
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-label">Securitized Amount</div>
+                            <div class="kpi-value">€8.5<span style="font-size: 0.6em;">B</span></div>
+                            <div class="kpi-metric">% of Portfolio: 18%</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Active Deals</div>
+                            <div class="kpi-value">7</div>
+                            <div class="kpi-metric">CLO: 3 | NPI: 4</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Avg Rating</div>
+                            <div class="kpi-value">A-</div>
+                            <div class="kpi-metric">Portfolio: BBB+</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Investor Base</div>
+                            <div class="kpi-value">87</div>
+                            <div class="kpi-metric">Geographic: 24 countries</div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">Active Securitization Deals</div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Deal Name</th>
+                                    <th>Type</th>
+                                    <th>Originated</th>
+                                    <th>Size</th>
+                                    <th>Securitized</th>
+                                    <th>Avg Rating</th>
+                                    <th>Investors</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="securitizationTable">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- PORTFOLIO QUALITY VIEW -->
+                <div id="quality-view" class="view hidden">
+                    <div class="section">
+                        <div class="section-title">Asset Quality Analysis</div>
+                        <div class="chart-container">
+                            <canvas id="assetQualityChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">Problem Loans & Watchlist</div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Facility Amount</th>
+                                    <th>Classification</th>
+                                    <th>Days Past Due</th>
+                                    <th>LTV</th>
+                                    <th>Coverage</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="problemLoansTable">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- PROFITABILITY VIEW -->
+                <div id="profitability-view" class="view hidden">
+                    <div class="section">
+                        <div class="section-title">RAROC Analysis by Segment</div>
+                        <div class="chart-container">
+                            <canvas id="rarocChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">Top & Bottom Customers by Profitability</div>
+                        <div class="tabs">
+                            <div class="tab active" onclick="switchTab(event, 'profitable')">Top 10 Profitable</div>
+                            <div class="tab" onclick="switchTab(event, 'unprofitable')">Bottom 10 Profitable</div>
+                        </div>
+                        <div id="profitable" class="tab-content active">
+                            <table style="font-size: 12px;">
+                                <thead>
+                                    <tr>
+                                        <th>Rank</th>
+                                        <th>Customer</th>
+                                        <th>Segment</th>
+                                        <th>Exposure</th>
+                                        <th>RAROC</th>
+                                        <th>Net Profit</th>
+                                        <th>Recommendation</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="profitableTable">
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="unprofitable" class="tab-content">
+                            <table style="font-size: 12px;">
+                                <thead>
+                                    <tr>
+                                        <th>Rank</th>
+                                        <th>Customer</th>
+                                        <th>Segment</th>
+                                        <th>Exposure</th>
+                                        <th>RAROC</th>
+                                        <th>Net Loss</th>
+                                        <th>Recommendation</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="unprofitableTable">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STRESS TESTING VIEW -->
+                <div id="stress-view" class="view hidden">
+                    <div class="section">
+                        <div class="section-title">Stress Test Scenarios & Results</div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Scenario</th>
+                                    <th>Description</th>
+                                    <th>CET1 Ratio</th>
+                                    <th>Delta vs Baseline</th>
+                                    <th>Capital Breach</th>
+                                    <th>RWA Change</th>
+                                    <th>Risk Level</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Baseline</strong></td>
+                                    <td>Current conditions</td>
+                                    <td>9.2%</td>
+                                    <td>-</td>
+                                    <td><span class="badge badge-success">✓ No</span></td>
+                                    <td>-</td>
+                                    <td>-</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Economic Downturn</strong></td>
+                                    <td>GDP -3%, Unemployment +2%, Spreads +200bps</td>
+                                    <td>6.8%</td>
+                                    <td>-240 bps</td>
+                                    <td><span class="badge badge-warning">⚠ Tight</span></td>
+                                    <td>+€2.4B (+11.3%)</td>
+                                    <td>🔴 High</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Interest Rate Shock</strong></td>
+                                    <td>Rates +200bps globally</td>
+                                    <td>8.1%</td>
+                                    <td>-110 bps</td>
+                                    <td><span class="badge badge-success">✓ No</span></td>
+                                    <td>+€1.2B (+5.7%)</td>
+                                    <td>🟡 Medium</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Credit Migration</strong></td>
+                                    <td>All ratings migrate 1 notch down</td>
+                                    <td>7.4%</td>
+                                    <td>-180 bps</td>
+                                    <td><span class="badge badge-warning">⚠ Tight</span></td>
+                                    <td>+€1.8B (+8.5%)</td>
+                                    <td>🟡 Medium</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Collateral Shock</strong></td>
+                                    <td>Collateral values -20%</td>
+                                    <td>7.9%</td>
+                                    <td>-130 bps</td>
+                                    <td><span class="badge badge-success">✓ No</span></td>
+                                    <td>+€1.5B (+7.1%)</td>
+                                    <td>🟡 Medium</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="section">
+                            <div class="section-title">Stress Test Impact - RWA</div>
+                            <div class="chart-container">
+                                <canvas id="stressRWAChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="section">
+                            <div class="section-title">Stress Test Impact - Capital Ratio</div>
+                            <div class="chart-container">
+                                <canvas id="stressCapitalChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RISK ALERTS VIEW -->
+                <div id="alerts-view" class="view hidden">
+                    <div class="section">
+                        <div class="section-title">Active Risk Alerts & Events</div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Alert Type</th>
+                                    <th>Customer / Portfolio</th>
+                                    <th>Severity</th>
+                                    <th>Description</th>
+                                    <th>Action Required</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="alertsTable">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================
+        // DATA GENERATION
+        // ========================
+
+        const portfolioData = {
+            segments: ['Large Corporate', 'Mid-Market', 'SME'],
+            industries: ['Energy', 'Utilities', 'Telecom', 'Retail', 'Manufacturing', 'Tech', 'Finance', 'Other'],
+            products: ['Term Loan', 'Revolving Credit', 'Trade Finance', 'Structured Finance'],
+            countries: ['Germany', 'France', 'Italy', 'Spain', 'Netherlands', 'Belgium', 'Austria', 'Poland'],
+            customers: [
+                { id: 1, name: 'Siemens AG', segment: 'Large Corporate', industry: 'Manufacturing', country: 'Germany', rating: 'AA-', exposure: 2100 },
+                { id: 2, name: 'SAP SE', segment: 'Large Corporate', industry: 'Tech', country: 'Germany', rating: 'AA', exposure: 1850 },
+                { id: 3, name: 'BMW Group', segment: 'Large Corporate', industry: 'Manufacturing', country: 'Germany', rating: 'AA-', exposure: 2050 },
+                { id: 4, name: 'Deutsche Telekom', segment: 'Large Corporate', industry: 'Telecom', country: 'Germany', rating: 'A+', exposure: 1950 },
+                { id: 5, name: 'RWE AG', segment: 'Large Corporate', industry: 'Energy', country: 'Germany', rating: 'BBB+', exposure: 1750 },
+                { id: 6, name: 'ThyssenKrupp', segment: 'Large Corporate', industry: 'Manufacturing', country: 'Germany', rating: 'BB+', exposure: 1850 },
+                { id: 7, name: 'Allianz SE', segment: 'Large Corporate', industry: 'Finance', country: 'Germany', rating: 'AA', exposure: 2200 },
+                { id: 8, name: 'BASF SE', segment: 'Large Corporate', industry: 'Manufacturing', country: 'Germany', rating: 'A', exposure: 1600 },
+                { id: 9, name: 'Daimler AG', segment: 'Large Corporate', industry: 'Manufacturing', country: 'Germany', rating: 'A-', exposure: 1750 },
+                { id: 10, name: 'Continental AG', segment: 'Large Corporate', industry: 'Manufacturing', country: 'Germany', rating: 'BB', exposure: 1320 },
+                { id: 11, name: 'Messer Cutting Systems', segment: 'Mid-Market', industry: 'Manufacturing', country: 'Germany', rating: 'BBB-', exposure: 320 },
+                { id: 12, name: 'Rational AG', segment: 'Mid-Market', industry: 'Manufacturing', country: 'Germany', rating: 'BBB', exposure: 380 },
+            ]
+        };
+
+        // Generate charts
+        function initCharts() {
+            // Segment Chart
+            const segmentCtx = document.getElementById('segmentChart').getContext('2d');
+            new Chart(segmentCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Large Corporate', 'Mid-Market', 'SME'],
+                    datasets: [{
+                        data: [22100, 18500, 6700],
+                        backgroundColor: ['#1e40af', '#3b82f6', '#93c5fd'],
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'right', labels: { font: { size: 12 }, padding: 15 } }
+                    }
+                }
+            });
+
+            // RWA Chart
+            const rwaCtx = document.getElementById('rwaChart').getContext('2d');
+            new Chart(rwaCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Standardized', 'IRB Foundation', 'IRB Advanced'],
+                    datasets: [{
+                        label: 'RWA (€ Million)',
+                        data: [8200, 9200, 3800],
+                        backgroundColor: ['#1e40af', '#3b82f6', '#60a5fa']
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // Revenue Chart
+            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+            new Chart(revenueCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Large Corporate', 'Mid-Market', 'SME'],
+                    datasets: [{
+                        label: 'Revenue (€ Million)',
+                        data: [650, 420, 130],
+                        backgroundColor: ['#10b981', '#34d399', '#6ee7b7']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            // Capital Chart
+            const capCtx = document.getElementById('capitalChart').getContext('2d');
+            new Chart(capCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Capital Ratio (%)',
+                        data: [13.2, 13.4, 13.6, 13.7, 13.8, 13.8],
+                        borderColor: '#1e40af',
+                        backgroundColor: 'rgba(30, 64, 175, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // Industry Chart
+            const industryCtx = document.getElementById('industryChart').getContext('2d');
+            new Chart(industryCtx, {
+                type: 'horizontalBar',
+                type: 'bar',
+                data: {
+                    labels: ['Energy', 'Manufacturing', 'Telecom', 'Utilities', 'Retail', 'Finance', 'Tech', 'Other'],
+                    datasets: [{
+                        label: 'Exposure (€B)',
+                        data: [7.2, 12.5, 6.8, 5.2, 4.1, 3.8, 3.2, 4.5],
+                        backgroundColor: ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e', '#06b6d4', '#0ea5e9', '#8b5cf6']
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // Product Chart
+            const productCtx = document.getElementById('productChart').getContext('2d');
+            new Chart(productCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Term Loan', 'Revolving Credit', 'Trade Finance', 'Structured Finance'],
+                    datasets: [{
+                        data: [28500, 12800, 4200, 1800],
+                        backgroundColor: ['#1e40af', '#3b82f6', '#60a5fa', '#93c5fd']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right', labels: { font: { size: 11 } } } }
+                }
+            });
+
+            // Rating Chart
+            const ratingCtx = document.getElementById('ratingChart').getContext('2d');
+            new Chart(ratingCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['AAA', 'AA', 'A', 'BBB', 'BB', 'B', 'CCC'],
+                    datasets: [{
+                        label: 'Exposure (€B)',
+                        data: [0.5, 8.2, 14.5, 18.2, 4.2, 1.5, 0.2],
+                        backgroundColor: ['#10b981', '#34d399', '#6ee7b7', '#fbbf24', '#f97316', '#ef4444', '#7f1d1d']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            // Cap Req Chart
+            const capReqCtx = document.getElementById('capReqChart').getContext('2d');
+            new Chart(capReqCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                    datasets: [{
+                        label: 'Capital Required (€M)',
+                        data: [1580, 1620, 1695, 1750],
+                        borderColor: '#1e40af',
+                        backgroundColor: 'rgba(30, 64, 175, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // Basel Approach Chart
+            const baselCtx = document.getElementById('baselApproachChart').getContext('2d');
+            new Chart(baselCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Standardized', 'IRB Foundation', 'IRB Advanced'],
+                    datasets: [{
+                        data: [8200, 9200, 3800],
+                        backgroundColor: ['#ef4444', '#f97316', '#eab308']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'right' } }
+                }
+            });
+
+            // Asset Quality Chart
+            const assetCtx = document.getElementById('assetQualityChart').getContext('2d');
+            new Chart(assetCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Performing', 'Underperforming', 'NPL', 'In Default'],
+                    datasets: [{
+                        label: 'Amount (€B)',
+                        data: [45.8, 0.9, 0.58, 0.02],
+                        backgroundColor: ['#10b981', '#fbbf24', '#f97316', '#ef4444']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // RAROC Chart
+            const rarocCtx = document.getElementById('rarocChart').getContext('2d');
+            new Chart(rarocCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Large Corporate', 'Mid-Market', 'SME', 'Target'],
+                    datasets: [{
+                        label: 'RAROC (%)',
+                        data: [8.9, 8.1, 7.6, 8.5],
+                        backgroundColor: ['#10b981', '#34d399', '#fbbf24', '#1e40af']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // Stress RWA Chart
+            const stressRWACtx = document.getElementById('stressRWAChart').getContext('2d');
+            new Chart(stressRWACtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Baseline', 'Downturn', 'Rates +200bps', 'Credit Migration', 'Collateral Shock'],
+                    datasets: [{
+                        label: 'RWA (€B)',
+                        data: [21.2, 23.6, 22.4, 23.0, 22.7],
+                        backgroundColor: ['#1e40af', '#ef4444', '#f97316', '#eab308', '#f59e0b']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // Stress Capital Chart
+            const stressCapCtx = document.getElementById('stressCapitalChart').getContext('2d');
+            new Chart(stressCapCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Baseline', 'Downturn', 'Rates +200bps', 'Credit Migration', 'Collateral Shock'],
+                    datasets: [{
+                        label: 'CET1 Ratio (%)',
+                        data: [9.2, 6.8, 8.1, 7.4, 7.9],
+                        backgroundColor: ['#10b981', '#ef4444', '#f97316', '#f59e0b', '#f97316']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, max: 12 } }
+                }
+            });
+        }
+
+        // Populate tables
+        function populateTables() {
+            // Top Customers
+            let topCustomersHtml = '';
+            portfolioData.customers.forEach((cust, idx) => {
+                const raroc = (Math.random() * 4 + 6).toFixed(1);
+                topCustomersHtml += `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td><strong>${cust.name}</strong></td>
+                        <td><span class="badge badge-info">${cust.segment}</span></td>
+                        <td>${cust.industry}</td>
+                        <td>€${cust.exposure}M</td>
+                        <td>€${(cust.exposure * 0.45).toFixed(0)}M</td>
+                        <td><span class="badge badge-info">${cust.rating}</span></td>
+                        <td><span class="badge badge-success">Performing</span></td>
+                        <td>${raroc}%</td>
+                    </tr>
+                `;
+            });
+            document.getElementById('topCustomersTable').innerHTML = topCustomersHtml;
+
+            // Pipeline Table
+            let pipelineHtml = '';
+            const pipelineDeals = [
+                { name: 'Siemens Digital', customer: 'Siemens AG', amount: 250, product: 'Term Loan', status: 'Approved', margin: 2.3, closeDate: '2026-02-15', prob: '95%' },
+                { name: 'SAP Cloud Fund', customer: 'SAP SE', amount: 180, product: 'Revolving', status: 'Under Review', margin: 2.8, closeDate: '2026-03-01', prob: '75%' },
+                { name: 'BMW EV Finance', customer: 'BMW Group', amount: 420, product: 'Structured', status: 'Approved', margin: 3.2, closeDate: '2026-02-28', prob: '90%' },
+                { name: 'RWE Transition', customer: 'RWE AG', amount: 380, product: 'Term Loan', status: 'Conditional', margin: 4.5, closeDate: '2026-03-15', prob: '65%' },
+                { name: 'Allianz Bond', customer: 'Allianz SE', amount: 200, product: 'Term Loan', status: 'Approved', margin: 2.1, closeDate: '2026-02-20', prob: '98%' },
+            ];
+            pipelineDeals.forEach(deal => {
+                let statusBadge = deal.status === 'Approved' ? '<span class="badge badge-success">Approved</span>' :
+                                 deal.status === 'Under Review' ? '<span class="badge badge-warning">Under Review</span>' :
+                                 '<span class="badge badge-info">Conditional</span>';
+                pipelineHtml += `
+                    <tr>
+                        <td><strong>${deal.name}</strong></td>
+                        <td>${deal.customer}</td>
+                        <td>€${deal.amount}M</td>
+                        <td>${deal.product}</td>
+                        <td>${statusBadge}</td>
+                        <td>${deal.margin}%</td>
+                        <td>${deal.closeDate}</td>
+                        <td>${deal.prob}</td>
+                    </tr>
+                `;
+            });
+            document.getElementById('pipelineTable').innerHTML = pipelineHtml;
+
+            // Securitization Table
+            let securitizationHtml = '';
+            const secDeals = [
+                { name: 'CLO 2025-1', type: 'CLO', originated: '2025-01-15', size: 1200, securitized: 900, rating: 'A-', investors: 24 },
+                { name: 'NPI Germany 2025', type: 'NPI', originated: '2025-02-01', size: 2100, securitized: 1800, rating: 'A', investors: 18 },
+                { name: 'SME Portfolio 2025', type: 'NPI', originated: '2025-01-20', size: 850, securitized: 680, rating: 'BBB+', investors: 12 },
+            ];
+            secDeals.forEach(deal => {
+                securitizationHtml += `
+                    <tr>
+                        <td><strong>${deal.name}</strong></td>
+                        <td>${deal.type}</td>
+                        <td>${deal.originated}</td>
+                        <td>€${deal.size}M</td>
+                        <td>€${deal.securitized}M</td>
+                        <td><span class="badge badge-info">${deal.rating}</span></td>
+                        <td>${deal.investors}</td>
+                        <td><span class="badge badge-success">Active</span></td>
+                    </tr>
+                `;
+            });
+            document.getElementById('securitizationTable').innerHTML = securitizationHtml;
+
+            // Problem Loans
+            let problemLoansHtml = '';
+            const problemLoans = [
+                { customer: 'Thyssenkrupp Steel', amount: 280, class: 'Stage 2', dpd: 25, ltv: 72, coverage: 45 },
+                { customer: 'Continental AG', amount: 185, class: 'Stage 2', dpd: 18, ltv: 68, coverage: 52 },
+                { customer: 'SME Client XYZ', amount: 45, class: 'Stage 3 (NPL)', dpd: 92, ltv: 75, coverage: 60 },
+            ];
+            problemLoans.forEach(loan => {
+                problemLoansHtml += `
+                    <tr>
+                        <td><strong>${loan.customer}</strong></td>
+                        <td>€${loan.amount}M</td>
+                        <td><span class="badge badge-warning">${loan.class}</span></td>
+                        <td>${loan.dpd} days</td>
+                        <td>${loan.ltv}%</td>
+                        <td>${loan.coverage}%</td>
+                        <td><button class="btn btn-primary" style="padding: 4px 8px; font-size: 11px;">Review</button></td>
+                    </tr>
+                `;
+            });
+            document.getElementById('problemLoansTable').innerHTML = problemLoansHtml;
+
+            // Alerts Table
+            let alertsHtml = '';
+            const alerts = [
+                { date: '2026-02-08', type: 'Concentration Breach', entity: 'Energy Sector', severity: '🟡 Medium', desc: 'Energy sector exposure exceeded limit by 0.2pp', action: 'Reduce exposure', status: '<span class="badge badge-warning">In Progress</span>' },
+                { date: '2026-02-07', type: 'Rating Downgrade', entity: 'Continental AG', severity: '🟡 Medium', desc: 'Rating downgraded from A- to BBB+', action: 'Increase monitoring', status: '<span class="badge badge-info">Monitoring</span>' },
+                { date: '2026-02-05', type: 'Covenant Breach', entity: 'Thyssenkrupp', severity: '🔴 High', desc: 'Leverage ratio breached (3.8x vs 3.5x limit)', action: 'Credit Committee Review', status: '<span class="badge badge-danger">Action Required</span>' },
+                { date: '2026-02-03', type: 'Payment Late', entity: 'SME Portfolio', severity: '🟡 Medium', desc: '3 customers 15+ days late on payments', action: 'Collections Follow-up', status: '<span class="badge badge-warning">In Progress</span>' },
+            ];
+            alerts.forEach(alert => {
+                alertsHtml += `
+                    <tr>
+                        <td>${alert.date}</td>
+                        <td><strong>${alert.type}</strong></td>
+                        <td>${alert.entity}</td>
+                        <td>${alert.severity}</td>
+                        <td>${alert.desc}</td>
+                        <td>${alert.action}</td>
+                        <td>${alert.status}</td>
+                    </tr>
+                `;
+            });
+            document.getElementById('alertsTable').innerHTML = alertsHtml;
+
+            // Profitability Tables
+            let profitableHtml = '';
+            const profitableCustomers = [
+                { rank: 1, name: 'Allianz SE', segment: 'Large Corporate', exposure: 2200, raroc: 10.2, profit: 225 },
+                { rank: 2, name: 'SAP SE', segment: 'Large Corporate', exposure: 1850, raroc: 9.8, profit: 181 },
+                { rank: 3, name: 'Siemens AG', segment: 'Large Corporate', exposure: 2100, raroc: 9.5, profit: 200 },
+            ];
+            profitableCustomers.forEach(cust => {
+                profitableHtml += `
+                    <tr>
+                        <td>${cust.rank}</td>
+                        <td>${cust.name}</td>
+                        <td>${cust.segment}</td>
+                        <td>€${cust.exposure}M</td>
+                        <td><strong>${cust.raroc}%</strong></td>
+                        <td style="color: #10b981;">€${cust.profit}M</td>
+                        <td>Retain & Grow</td>
+                    </tr>
+                `;
+            });
+            document.getElementById('profitableTable').innerHTML = profitableHtml;
+
+            let unprofitableHtml = '';
+            const unprofitableCustomers = [
+                { rank: 1, name: 'SME Client ABC', segment: 'SME', exposure: 85, raroc: 3.2, loss: -12 },
+                { rank: 2, name: 'Regional Retailer', segment: 'Mid-Market', exposure: 220, raroc: 4.5, loss: -8 },
+                { rank: 3, name: 'Construction Firm', segment: 'SME', exposure: 65, raroc: 5.1, loss: -5 },
+            ];
+            unprofitableCustomers.forEach(cust => {
+                unprofitableHtml += `
+                    <tr>
+                        <td>${cust.rank}</td>
+                        <td>${cust.name}</td>
+                        <td>${cust.segment}</td>
+                        <td>€${cust.exposure}M</td>
+                        <td><strong>${cust.raroc}%</strong></td>
+                        <td style="color: #ef4444;">€${cust.loss}M</td>
+                        <td>Restructure or Exit</td>
+                    </tr>
+                `;
+            });
+            document.getElementById('unprofitableTable').innerHTML = unprofitableHtml;
+
+            // Industry Concentration
+            let industryConcentrationHtml = '';
+            const industryLimits = [
+                { industry: 'Energy', exposure: 7.2, limit: 15, utilization: 48, status: '<span class="badge badge-success">✓ OK</span>' },
+                { industry: 'Manufacturing', exposure: 12.5, limit: 20, utilization: 62.5, status: '<span class="badge badge-success">✓ OK</span>' },
+                { industry: 'Telecom', exposure: 6.8, limit: 12, utilization: 56.7, status: '<span class="badge badge-success">✓ OK</span>' },
+                { industry: 'Finance', exposure: 3.8, limit: 10, utilization: 38, status: '<span class="badge badge-success">✓ OK</span>' },
+            ];
+            industryLimits.forEach(ind => {
+                industryConcentrationHtml += `
+                    <tr>
+                        <td><strong>${ind.industry}</strong></td>
+                        <td>€${ind.exposure}B</td>
+                        <td>€${ind.limit}B</td>
+                        <td>${ind.utilization}%</td>
+                        <td>${ind.status}</td>
+                    </tr>
+                `;
+            });
+            document.getElementById('industryConcentrationTable').innerHTML = industryConcentrationHtml;
+
+            // Geographic Concentration
+            let geoConcentrationHtml = '';
+            const geoData = [
+                { country: 'Germany', exposure: 18.5, limit: 22, percentage: 39.1 },
+                { country: 'France', exposure: 9.2, limit: 15, percentage: 19.5 },
+                { country: 'Italy', exposure: 6.8, limit: 12, percentage: 14.4 },
+                { country: 'Spain', exposure: 5.1, limit: 10, percentage: 10.8 },
+                { country: 'Netherlands', exposure: 4.2, limit: 8, percentage: 8.9 },
+            ];
+            geoData.forEach(geo => {
+                geoConcentrationHtml += `
+                    <tr>
+                        <td><strong>${geo.country}</strong></td>
+                        <td>€${geo.exposure}B</td>
+                        <td>€${geo.limit}B</td>
+                        <td>${geo.percentage}%</td>
+                    </tr>
+                `;
+            });
+            document.getElementById('geoConcentrationTable').innerHTML = geoConcentrationHtml;
+
+            // Concentration Heatmap
+            let heatmapHtml = '';
+            const topCustomersHeatmap = portfolioData.customers.slice(0, 10);
+            topCustomersHeatmap.forEach((cust, idx) => {
+                const concentration = (cust.exposure / 47300) * 100;
+                const heatClass = concentration > 5 ? 'heat-10' : concentration > 4 ? 'heat-8' : concentration > 3 ? 'heat-6' : 'heat-2';
+                heatmapHtml += `
+                    <div class="heatmap-row">
+                        <div class="heatmap-label">${idx + 1}. ${cust.name}</div>
+                        <div class="heatmap-cell ${heatClass}">${concentration.toFixed(2)}% | €${cust.exposure}M</div>
+                    </div>
+                `;
+            });
+            document.getElementById('concentrationHeatmap').innerHTML = heatmapHtml;
+
+            // Revenue and RAROC Customers
+            let revenueCustomersHtml = '';
+            const revenueCustomers = [
+                { name: 'Siemens AG', revenue: 58.5, margin: 2.8 },
+                { name: 'BMW Group', revenue: 57.2, margin: 2.9 },
+                { name: 'SAP SE', revenue: 51.8, margin: 2.8 },
+            ];
+            revenueCustomers.forEach(cust => {
+                revenueCustomersHtml += `
+                    <tr>
+                        <td>${cust.name}</td>
+                        <td>€${cust.revenue}M</td>
+                        <td>${cust.margin}%</td>
+                    </tr>
+                `;
+            });
+            document.getElementById('revenueCustomersTable').innerHTML = revenueCustomersHtml;
+
+            let lowRarocHtml = '';
+            const lowRaroc = [
+                { name: 'SME Client ABC', raroc: 3.2 },
+                { name: 'Regional Retailer', raroc: 4.5 },
+                { name: 'Construction Firm', raroc: 5.1 },
+            ];
+            lowRaroc.forEach(cust => {
+                lowRarocHtml += `
+                    <tr>
+                        <td>${cust.name}</td>
+                        <td><strong>${cust.raroc}%</strong></td>
+                        <td><span class="badge badge-danger">Review</span></td>
+                    </tr>
+                `;
+            });
+            document.getElementById('lowRarocTable').innerHTML = lowRarocHtml;
+        }
+
+        // ========================
+        // UI INTERACTIONS
+        // ========================
+
+        function switchView(viewName) {
+            // Hide all views
+            document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+            // Show selected view
+            const viewId = viewName + '-view';
+            const element = document.getElementById(viewId);
+            if (element) element.classList.remove('hidden');
+
+            // Update sidebar
+            event.target.classList.add('active');
+
+            // Update header
+            const titles = {
+                'dashboard': { title: 'Executive Dashboard', desc: 'Real-time portfolio overview and key performance indicators' },
+                'portfolio': { title: 'Portfolio Analytics', desc: 'Detailed analysis by customer segment, industry, and product' },
+                'customers': { title: 'Customer 360', desc: 'Comprehensive customer view and relationship management' },
+                'risk': { title: 'Risk Management', desc: 'Credit risk metrics, concentrations, and early warnings' },
+                'capital': { title: 'Capital Management', desc: 'Basel III.1 compliance and capital optimization' },
+                'concentration': { title: 'Concentration Risk', desc: 'Single-name, industry, and geographic concentration analysis' },
+                'origination': { title: 'Origination Pipeline', desc: 'Active deals and new business opportunities' },
+                'securitization': { title: 'Securitization & Distribution', desc: 'Active deals, investor management, and performance' },
+                'quality': { title: 'Portfolio Quality', desc: 'Asset quality metrics and problem loan management' },
+                'profitability': { title: 'Profitability Analysis', desc: 'RAROC by customer and segment, value creation' },
+                'stress': { title: 'Stress Testing', desc: 'Scenario analysis and capital adequacy under stress' },
+                'alerts': { title: 'Risk Alerts & Events', desc: 'Active alerts and KRI breaches requiring action' },
+            };
+
+            const titleData = titles[viewName] || { title: 'View', desc: 'Dashboard view' };
+            document.getElementById('viewTitle').textContent = titleData.title;
+            document.getElementById('viewDesc').textContent = titleData.desc;
+        }
+
+        function switchTab(event, tabName) {
+            // Hide all tab content
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // ========================
+        // INITIALIZATION
+        // ========================
+
+        document.addEventListener('DOMContentLoaded', function() {
+            populateTables();
+            initCharts();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit & Capital Management Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0f1419;
+            color: #e8ecef;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1a1f26 0%, #252d38 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 1px solid #2a3442;
+        }
+
+        header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+
+        header p {
+            color: #a8b2bb;
+            font-size: 13px;
+        }
+
+        .filter-section {
+            background: #1a1f26;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 1px solid #2a3442;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-group label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #a8b2bb;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-group select {
+            background: #252d38;
+            color: #e8ecef;
+            border: 1px solid #ff6b35;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .tab-navigation {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #2a3442;
+        }
+
+        .tab-btn {
+            background: #1a1f26;
+            color: #a8b2bb;
+            border: 1px solid #2a3442;
+            padding: 10px 15px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            color: #ff6b35;
+            border-color: #ff6b35;
+        }
+
+        .tab-btn.active {
+            background: #ff6b35;
+            color: #ffffff;
+            border-color: #ff6b35;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .kpi-card {
+            background: #1a1f26;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #2a3442;
+        }
+
+        .kpi-label {
+            font-size: 11px;
+            color: #a8b2bb;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .kpi-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #ff6b35;
+            margin-bottom: 6px;
+        }
+
+        .kpi-change {
+            font-size: 11px;
+            color: #4ade80;
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .chart-container {
+            background: #1a1f26;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #2a3442;
+        }
+
+        .chart-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 12px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            min-height: 300px;
+        }
+
+        .table-container {
+            background: #1a1f26;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #2a3442;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+
+        .table-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        thead th {
+            background: #252d38;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            color: #a8b2bb;
+            border-bottom: 1px solid #2a3442;
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+
+        tbody td {
+            padding: 10px;
+            border-bottom: 1px solid #2a3442;
+            color: #e8ecef;
+        }
+
+        tbody tr:hover {
+            background: #252d38;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-success {
+            background: rgba(74, 222, 128, 0.15);
+            color: #4ade80;
+        }
+
+        .badge-warning {
+            background: rgba(250, 204, 21, 0.15);
+            color: #facc15;
+        }
+
+        .badge-info {
+            background: rgba(255, 107, 53, 0.15);
+            color: #ff6b35;
+        }
+
+        @media (max-width: 1024px) {
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            header {
+                padding: 15px;
+            }
+
+            header h1 {
+                font-size: 18px;
+            }
+
+            .tab-btn {
+                padding: 8px 12px;
+                font-size: 11px;
+            }
+
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .kpi-value {
+                font-size: 18px;
+            }
+
+            .chart-wrapper {
+                height: 250px;
+            }
+
+            table {
+                font-size: 11px;
+            }
+
+            thead th, tbody td {
+                padding: 7px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💼 Credit & Capital Management Dashboard</h1>
+            <p>Strategic Portfolio Analytics | Risk Optimisation | Capital Allocation</p>
+        </header>
+
+        <div class="filter-section">
+            <div class="filter-group">
+                <label for="timeframeFilter">Period</label>
+                <select id="timeframeFilter">
+                    <option value="Q4-2025">Q4 2025</option>
+                    <option value="Q3-2025">Q3 2025</option>
+                    <option value="Q2-2025">Q2 2025</option>
+                    <option value="Q1-2025">Q1 2025</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="regionFilter">Region</label>
+                <select id="regionFilter">
+                    <option value="All">All Regions</option>
+                    <option value="EMEA">EMEA</option>
+                    <option value="APAC">APAC</option>
+                    <option value="Americas">Americas</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="ratingFilter">Min Rating</label>
+                <select id="ratingFilter">
+                    <option value="All">All Ratings</option>
+                    <option value="IG">Investment Grade</option>
+                    <option value="HY">High Yield</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="tab-navigation">
+            <button class="tab-btn active" onclick="switchTab(event, 'executive')">Executive</button>
+            <button class="tab-btn" onclick="switchTab(event, 'origination')">Origination</button>
+            <button class="tab-btn" onclick="switchTab(event, 'portfolio')">Portfolio</button>
+            <button class="tab-btn" onclick="switchTab(event, 'capital')">Capital</button>
+            <button class="tab-btn" onclick="switchTab(event, 'distribution')">Distribution</button>
+            <button class="tab-btn" onclick="switchTab(event, 'returns')">Returns</button>
+            <button class="tab-btn" onclick="switchTab(event, 'risks')">Risks</button>
+            <button class="tab-btn" onclick="switchTab(event, 'opportunities')">Opportunities</button>
+            <button class="tab-btn" onclick="switchTab(event, 'efficiency')">Efficiency</button>
+            <button class="tab-btn" onclick="switchTab(event, 'regulatory')">Regulatory</button>
+        </div>
+
+        <div id="executive" class="tab-content active">
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Portfolio Value</div>
+                    <div class="kpi-value" id="kpi-portfolio">€47.3B</div>
+                    <div class="kpi-change">↑ 2.3% QoQ</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Total RWA</div>
+                    <div class="kpi-value" id="kpi-rwa">€21.2B</div>
+                    <div class="kpi-change">↑ 1.1% QoQ</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">GRORWA</div>
+                    <div class="kpi-value" id="kpi-grorwa">12.4%</div>
+                    <div class="kpi-change">↑ 45 bps QoQ</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">ROTE</div>
+                    <div class="kpi-value" id="kpi-rote">18.2%</div>
+                    <div class="kpi-change">↑ 120 bps QoQ</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Capital Ratio</div>
+                    <div class="kpi-value" id="kpi-capital">13.8%</div>
+                    <div class="kpi-change">↓ 20 bps YTD</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">NPL Ratio</div>
+                    <div class="kpi-value" id="kpi-npl">2.1%</div>
+                    <div class="kpi-change">↓ 35 bps YTD</div>
+                </div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="chart-container">
+                    <div class="chart-title">Portfolio & RWA Trend (4Q)</div>
+                    <div class="chart-wrapper">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Sector Composition</div>
+                    <div class="chart-wrapper">
+                        <canvas id="sectorChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Rating Distribution</div>
+                    <div class="chart-wrapper">
+                        <canvas id="ratingChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <div class="table-title">Top 10 Exposures</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Sector</th>
+                            <th>Region</th>
+                            <th>Exp (€m)</th>
+                            <th>RWA (€m)</th>
+                            <th>Rating</th>
+                            <th>GRORWA %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="top10Table">
+                        <tr><td colspan="7" style="text-align: center; padding: 20px; color: #a8b2bb;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="origination" class="tab-content">
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">YTD Originations</div>
+                    <div class="kpi-value" id="kpi-originations">€8.2B</div>
+                    <div class="kpi-change">↑ 18% YoY</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Pipeline</div>
+                    <div class="kpi-value" id="kpi-pipeline">€12.4B</div>
+                    <div class="kpi-change">↑ 8% vs Plan</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Conversion Rate</div>
+                    <div class="kpi-value" id="kpi-conversion">68%</div>
+                    <div class="kpi-change">↑ 4% QoQ</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Avg Deal Size</div>
+                    <div class="kpi-value" id="kpi-dealsize">€125m</div>
+                    <div class="kpi-change">↓ 8% QoQ</div>
+                </div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="chart-container">
+                    <div class="chart-title">Product Mix (€8.2B)</div>
+                    <div class="chart-wrapper">
+                        <canvas id="productChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Pipeline Maturity</div>
+                    <div class="chart-wrapper">
+                        <canvas id="maturityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <div class="table-title">Deal Pipeline</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Deal</th>
+                            <th>Size (€m)</th>
+                            <th>Stage</th>
+                            <th>Est GRORWA %</th>
+                            <th>Close</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pipelineTable">
+                        <tr><td colspan="5" style="text-align: center; padding: 20px; color: #a8b2bb;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="portfolio" class="tab-content">
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Sector Concentration</div>
+                    <div class="kpi-value" id="kpi-topconc">23.4%</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Top 20 Names</div>
+                    <div class="kpi-value" id="kpi-top20">47.8%</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Avg LGD</div>
+                    <div class="kpi-value" id="kpi-lgd">42.3%</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Avg PD</div>
+                    <div class="kpi-value" id="kpi-pd">2.8%</div>
+                </div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="chart-container">
+                    <div class="chart-title">By Sector</div>
+                    <div class="chart-wrapper">
+                        <canvas id="sectorExposureChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">By Geography</div>
+                    <div class="chart-wrapper">
+                        <canvas id="geoChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="capital" class="tab-content">
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">RWA Density</div>
+                    <div class="kpi-value" id="kpi-density">44.8%</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Below Hurdle RWA</div>
+                    <div class="kpi-value" id="kpi-belowhumrdle">€3.2B</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Capital Efficiency</div>
+                    <div class="kpi-value" id="kpi-capeff">62.4%</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Excess Capital</div>
+                    <div class="kpi-value" id="kpi-excesscap">€1.8B</div>
+                </div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="chart-container">
+                    <div class="chart-title">RWA by Class</div>
+                    <div class="chart-wrapper">
+                        <canvas id="rwaClassChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">GRORWA Distribution</div>
+                    <div class="chart-wrapper">
+                        <canvas id="groRWADistChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="distribution" class="tab-content">
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Assets Distributed</div>
+                    <div class="kpi-value" id="kpi-distributed">€6.8B</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Distribution Rate</div>
+                    <div class="kpi-value" id="kpi-distrate">45%</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Avg Fee (bps)</div>
+                    <div class="kpi-value" id="kpi-distfee">34</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Investors</div>
+                    <div class="kpi-value" id="kpi-investors">142</div>
+                </div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="chart-container">
+                    <div class="chart-title">Product Type</div>
+                    <div class="chart-wrapper">
+                        <canvas id="distProductChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Investor Type</div>
+                    <div class="chart-wrapper">
+                        <canvas id="investorTypeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="returns" class="tab-content">
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Gross Revenue</div>
+                    <div class="kpi-value" id="kpi-revenue">€2,648m</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">NII</div>
+                    <div class="kpi-value" id="kpi-nii">€1,542m</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Fees</div>
+                    <div class="kpi-value" id="kpi-fees">€584m</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Trading</div>
+                    <div class="kpi-value" id="kpi-other">€522m</div>
+                </div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="chart-container">
+                    <div class="chart-title">Revenue Mix</div>
+                    <div class="chart-wrapper">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">ROTE vs GRORWA</div>
+                    <div class="chart-wrapper">
+                        <canvas id="roteGrorwaChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="risks" class="tab-content">
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">NPL Amount</div>
+                    <div class="kpi-value" id="kpi-nplamt">€445m</div>
+                    <div class="kpi-change">↑ 8 bps YTD</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">ECL Provision</div>
+                    <div class="kpi-value" id="kpi-ecl">€682m</div>
+                    <div class="kpi-change">↑ 2.1% QoQ</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">CET1 Ratio</div>
+                    <div class="kpi-value" id="kpi-cet1">11.8%</div>
+                    <div class="kpi-change">↑ 40 bps YTD</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Leverage Ratio</div>
+                    <div class="kpi-value" id="kpi-leverage">5.2%</div>
+                    <div class="kpi-change">↑ 15 bps YTD</div>
+                </div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="chart-container">
+                    <div class="chart-title">NPL by Rating</div>
+                    <div class="chart-wrapper">
+                        <canvas id="nplChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">ECL Coverage</div>
+                    <div class="chart-wrapper">
+                        <canvas id="eclChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Watch List Trend</div>
+                    <div class="chart-wrapper">
+                        <canvas id="watchlistChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <div class="table-title">Credit Quality Migration</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rating</th>
+                            <th>Q4 Exposure</th>
+                            <th>Avg PD</th>
+                            <th>Watch List</th>
+                            <th>NPL Amt</th>
+                            <th>Coverage %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="creditQualityTable">
+                        <tr><td colspan="6" style="text-align: center; padding: 20px; color: #a8b2bb;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="opportunities" class="tab-content">
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Value Creation Potential</div>
+                    <div class="kpi-value" id="kpi-valcreate">€2.1B</div>
+                    <div class="kpi-change">↑ 12% vs Plan</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">RWA Optimization Scope</div>
+                    <div class="kpi-value" id="kpi-rwaopt">€1.8B</div>
+                    <div class="kpi-change">Via restructuring</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Exit/Sale Candidates</div>
+                    <div class="kpi-value" id="kpi-exitcand">€3.2B</div>
+                    <div class="kpi-change">Below hurdle</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Repricing Upside</div>
+                    <div class="kpi-value" id="kpi-repricing">78 bps</div>
+                    <div class="kpi-change">Potential avg</div>
+                </div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="chart-container">
+                    <div class="chart-title">Value Creation by Lever</div>
+                    <div class="chart-wrapper">
+                        <canvas id="valueLeverChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">RWA Optimization Waterfall</div>
+                    <div class="chart-wrapper">
+                        <canvas id="rwaOptChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Growth by Segment</div>
+                    <div class="chart-wrapper">
+                        <canvas id="segmentGrowthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <div class="table-title">Below-Hurdle Portfolio Analysis</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Client</th>
+                            <th>Exposure</th>
+                            <th>Current GRORWA %</th>
+                            <th>Hurdle %</th>
+                            <th>Gap (bps)</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="belowHurdleTable">
+                        <tr><td colspan="6" style="text-align: center; padding: 20px; color: #a8b2bb;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="efficiency" class="tab-content">
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Cost/Income Ratio</div>
+                    <div class="kpi-value" id="kpi-costincome">38.2%</div>
+                    <div class="kpi-change">↓ 180 bps YoY</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Revenue per Employee</div>
+                    <div class="kpi-value" id="kpi-revperemp">€1.24m</div>
+                    <div class="kpi-change">↑ 8% YoY</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Avg Capital per Deal</div>
+                    <div class="kpi-value" id="kpi-capperrdeal">€38m</div>
+                    <div class="kpi-change">↓ 5% YoY</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Processing Days</div>
+                    <div class="kpi-value" id="kpi-procdays">32</div>
+                    <div class="kpi-change">↓ 8 days YoY</div>
+                </div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="chart-container">
+                    <div class="chart-title">Front/Middle/Back Office Split</div>
+                    <div class="chart-wrapper">
+                        <canvas id="officeChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Deal Processing Efficiency</div>
+                    <div class="chart-wrapper">
+                        <canvas id="processingChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Capital Deployment vs Target</div>
+                    <div class="chart-wrapper">
+                        <canvas id="deploymentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="regulatory" class="tab-content">
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Large Exposure Limit</div>
+                    <div class="kpi-value" id="kpi-largeexp">78%</div>
+                    <div class="kpi-change">of 25% threshold</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Concentration to Limit</div>
+                    <div class="kpi-value" id="kpi-conclimit">23.4%</div>
+                    <div class="kpi-change">vs 50% limit</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Liquidity Coverage Ratio</div>
+                    <div class="kpi-value" id="kpi-lcr">142%</div>
+                    <div class="kpi-change">↑ 8% QoQ</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Basel 3.1 Impact</div>
+                    <div class="kpi-value" id="kpi-basel31">+245 bps</div>
+                    <div class="kpi-change">est. RWA increase</div>
+                </div>
+            </div>
+
+            <div class="chart-grid">
+                <div class="chart-container">
+                    <div class="chart-title">Regulatory Limits Utilisation</div>
+                    <div class="chart-wrapper">
+                        <canvas id="regLimitsChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-title">Capital Requirement Trend</div>
+                    <div class="chart-wrapper">
+                        <canvas id="capReqChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <div class="table-title">Regulatory Compliance Status</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Requirement</th>
+                            <th>Current</th>
+                            <th>Minimum/Target</th>
+                            <th>Buffer (bps)</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="regulatoryTable">
+                        <tr><td colspan="5" style="text-align: center; padding: 20px; color: #a8b2bb;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let charts = {};
+
+        const baseData = {
+            "Q4-2025": {
+                "All": { "All": { portfolioValue: 47300, rwa: 21200, grorwa: 12.4, rote: 18.2, capitalRatio: 13.8, npl: 2.1, originations: 8200, pipeline: 12400, conversion: 68, dealsize: 125, distributed: 6800, distrate: 45, topConc: 23.4, top20: 47.8, lgd: 42.3, pd: 2.8, density: 44.8, belowHurdle: 3200, capEff: 62.4, excessCap: 1800, revenue: 2648, nii: 1542, fees: 584, other: 522, nplAmt: 445, ecl: 682, cet1: 11.8, leverage: 5.2, distfee: 34, investors: 142, valCreate: 2100, rwaOpt: 1800, exitCand: 3200, repricing: 78, costIncome: 38.2, revPerEmp: 1.24, capPerDeal: 38, procDays: 32, largeExp: 78, concLimit: 23.4, lcr: 142, basel31: 245 } },
+                "EMEA": { "All": { portfolioValue: 21400, rwa: 9800, grorwa: 13.2, rote: 19.1, capitalRatio: 14.2, npl: 1.8, originations: 3200, pipeline: 4800, conversion: 70, dealsize: 140, distributed: 2800, distrate: 48, topConc: 21.2, top20: 45.1, lgd: 40.2, pd: 2.3, density: 45.8, belowHurdle: 1100, capEff: 65.2, excessCap: 920, revenue: 1240, nii: 785, fees: 285, other: 170, nplAmt: 180, ecl: 320, cet1: 12.1, leverage: 5.1, distfee: 36, investors: 64, valCreate: 950, rwaOpt: 820, exitCand: 1480, repricing: 82, costIncome: 36.1, revPerEmp: 1.31, capPerDeal: 40, procDays: 28, largeExp: 75, concLimit: 21.2, lcr: 145, basel31: 252 } },
+                "APAC": { "All": { portfolioValue: 15600, rwa: 7100, grorwa: 11.8, rote: 17.4, capitalRatio: 13.4, npl: 2.4, originations: 2800, pipeline: 4200, conversion: 65, dealsize: 115, distributed: 2100, distrate: 42, topConc: 24.8, top20: 48.9, lgd: 43.1, pd: 2.9, density: 45.6, belowHurdle: 1200, capEff: 60.8, excessCap: 620, revenue: 850, nii: 512, fees: 195, other: 143, nplAmt: 165, ecl: 228, cet1: 11.5, leverage: 5.3, distfee: 32, investors: 48, valCreate: 680, rwaOpt: 620, exitCand: 1050, repricing: 71, costIncome: 40.2, revPerEmp: 1.18, capPerDeal: 36, procDays: 35, largeExp: 82, concLimit: 24.8, lcr: 138, basel31: 238 } },
+                "Americas": { "All": { portfolioValue: 10300, rwa: 4300, grorwa: 11.2, rote: 16.8, capitalRatio: 13.2, npl: 2.7, originations: 2200, pipeline: 3400, conversion: 64, dealsize: 110, distributed: 1800, distrate: 41, topConc: 23.1, top20: 46.2, lgd: 44.5, pd: 3.1, density: 41.7, belowHurdle: 900, capEff: 59.2, excessCap: 260, revenue: 558, nii: 245, fees: 104, other: 209, nplAmt: 100, ecl: 134, cet1: 11.9, leverage: 5.0, distfee: 30, investors: 30, valCreate: 470, rwaOpt: 360, exitCand: 620, repricing: 68, costIncome: 38.5, revPerEmp: 1.08, capPerDeal: 37, procDays: 38, largeExp: 76, concLimit: 23.1, lcr: 140, basel31: 242 } }
+            },
+            "Q3-2025": {
+                "All": { "All": { portfolioValue: 46200, rwa: 21000, grorwa: 12.0, rote: 17.1, capitalRatio: 14.0, npl: 2.45, originations: 7100, pipeline: 11800, conversion: 65, dealsize: 130, distributed: 5200, distrate: 42, topConc: 22.8, top20: 46.2, lgd: 44.1, pd: 3.1, density: 45.5, belowHurdle: 2900, capEff: 60.1, excessCap: 1600, revenue: 2432, nii: 1468, fees: 521, other: 443, nplAmt: 484, ecl: 668, cet1: 11.9, leverage: 5.15, distfee: 33, investors: 138, valCreate: 1950, rwaOpt: 1650, exitCand: 2980, repricing: 75, costIncome: 39.1, revPerEmp: 1.21, capPerDeal: 39, procDays: 33, largeExp: 79, concLimit: 22.8, lcr: 140, basel31: 248 } },
+                "EMEA": { "All": { portfolioValue: 20800, rwa: 9600, grorwa: 12.8, rote: 18.2, capitalRatio: 14.3, npl: 2.1, originations: 2900, pipeline: 4500, conversion: 67, dealsize: 145, distributed: 2400, distrate: 45, topConc: 20.8, top20: 44.2, lgd: 39.8, pd: 2.5, density: 46.2, belowHurdle: 980, capEff: 63.5, excessCap: 850, revenue: 1150, nii: 725, fees: 265, other: 160, nplAmt: 168, ecl: 300, cet1: 12.2, leverage: 5.05, distfee: 35, investors: 62, valCreate: 880, rwaOpt: 760, exitCand: 1420, repricing: 79, costIncome: 35.8, revPerEmp: 1.28, capPerDeal: 41, procDays: 29, largeExp: 76, concLimit: 20.8, lcr: 143, basel31: 250 } },
+                "APAC": { "All": { portfolioValue: 15200, rwa: 6900, grorwa: 11.4, rote: 16.8, capitalRatio: 13.5, npl: 2.8, originations: 2600, pipeline: 4000, conversion: 63, dealsize: 120, distributed: 1950, distrate: 40, topConc: 24.5, top20: 47.8, lgd: 42.8, pd: 3.1, density: 45.4, belowHurdle: 1100, capEff: 59.2, excessCap: 580, revenue: 820, nii: 495, fees: 185, other: 140, nplAmt: 172, ecl: 215, cet1: 11.6, leverage: 5.25, distfee: 31, investors: 46, valCreate: 630, rwaOpt: 580, exitCand: 980, repricing: 69, costIncome: 41.3, revPerEmp: 1.15, capPerDeal: 35, procDays: 36, largeExp: 83, concLimit: 24.5, lcr: 136, basel31: 235 } },
+                "Americas": { "All": { portfolioValue: 10200, rwa: 4500, grorwa: 10.8, rote: 16.2, capitalRatio: 13.1, npl: 2.9, originations: 2100, pipeline: 3300, conversion: 62, dealsize: 115, distributed: 1700, distrate: 39, topConc: 23.2, top20: 45.8, lgd: 44.2, pd: 3.2, density: 44.1, belowHurdle: 820, capEff: 57.8, excessCap: 190, revenue: 462, nii: 248, fees: 71, other: 143, nplAmt: 144, ecl: 153, cet1: 11.8, leverage: 4.95, distfee: 29, investors: 30, valCreate: 440, rwaOpt: 330, exitCand: 600, repricing: 66, costIncome: 39.2, revPerEmp: 1.05, capPerDeal: 38, procDays: 39, largeExp: 77, concLimit: 23.2, lcr: 138, basel31: 240 } }
+            },
+            "Q2-2025": {
+                "All": { "All": { portfolioValue: 44800, rwa: 20650, grorwa: 11.6, rote: 16.2, capitalRatio: 14.1, npl: 2.78, originations: 5800, pipeline: 10200, conversion: 62, dealsize: 135, distributed: 3900, distrate: 39, topConc: 24.2, top20: 48.1, lgd: 45.8, pd: 3.4, density: 46.1, belowHurdle: 3100, capEff: 58.2, excessCap: 1450, revenue: 2187, nii: 1340, fees: 461, other: 386, nplAmt: 523, ecl: 634, cet1: 12.1, leverage: 5.18, distfee: 32, investors: 134, valCreate: 1820, rwaOpt: 1520, exitCand: 2850, repricing: 72, costIncome: 39.8, revPerEmp: 1.18, capPerDeal: 40, procDays: 34, largeExp: 81, concLimit: 24.2, lcr: 139, basel31: 246 } },
+                "EMEA": { "All": { portfolioValue: 20200, rwa: 9400, grorwa: 12.2, rote: 17.1, capitalRatio: 14.4, npl: 2.3, originations: 2600, pipeline: 4200, conversion: 64, dealsize: 150, distributed: 2100, distrate: 42, topConc: 20.5, top20: 43.8, lgd: 40.1, pd: 2.7, density: 46.5, belowHurdle: 850, capEff: 61.2, excessCap: 780, revenue: 1050, nii: 665, fees: 240, other: 145, nplAmt: 152, ecl: 280, cet1: 12.3, leverage: 5.08, distfee: 34, investors: 60, valCreate: 820, rwaOpt: 700, exitCand: 1350, repricing: 76, costIncome: 36.5, revPerEmp: 1.25, capPerDeal: 42, procDays: 30, largeExp: 74, concLimit: 20.5, lcr: 141, basel31: 248 } },
+                "APAC": { "All": { portfolioValue: 14800, rwa: 6700, grorwa: 11.0, rote: 16.0, capitalRatio: 13.6, npl: 3.0, originations: 2400, pipeline: 3800, conversion: 60, dealsize: 125, distributed: 1750, distrate: 37, topConc: 24.8, top20: 48.5, lgd: 43.2, pd: 3.3, density: 45.2, belowHurdle: 1050, capEff: 57.8, excessCap: 520, revenue: 780, nii: 468, fees: 175, other: 137, nplAmt: 198, ecl: 210, cet1: 11.7, leverage: 5.28, distfee: 30, investors: 44, valCreate: 580, rwaOpt: 540, exitCand: 920, repricing: 67, costIncome: 42.1, revPerEmp: 1.12, capPerDeal: 34, procDays: 37, largeExp: 84, concLimit: 24.8, lcr: 134, basel31: 232 } },
+                "Americas": { "All": { portfolioValue: 9800, rwa: 4550, grorwa: 10.4, rote: 15.2, capitalRatio: 13.0, npl: 3.1, originations: 1900, pipeline: 3200, conversion: 60, dealsize: 120, distributed: 1500, distrate: 36, topConc: 23.5, top20: 46.2, lgd: 44.8, pd: 3.4, density: 46.4, belowHurdle: 800, capEff: 56.1, excessCap: 150, revenue: 357, nii: 207, fees: 46, other: 104, nplAmt: 173, ecl: 144, cet1: 11.7, leverage: 4.98, distfee: 28, investors: 28, valCreate: 410, rwaOpt: 300, exitCand: 570, repricing: 64, costIncome: 40.1, revPerEmp: 1.02, capPerDeal: 37, procDays: 40, largeExp: 78, concLimit: 23.5, lcr: 137, basel31: 238 } }
+            },
+            "Q1-2025": {
+                "All": { "All": { portfolioValue: 43200, rwa: 20340, grorwa: 11.2, rote: 15.4, capitalRatio: 14.2, npl: 3.12, originations: 4200, pipeline: 9800, conversion: 60, dealsize: 140, distributed: 2600, distrate: 35, topConc: 25.1, top20: 49.3, lgd: 47.2, pd: 3.8, density: 47.0, belowHurdle: 3400, capEff: 55.8, excessCap: 1200, revenue: 1956, nii: 1210, fees: 412, other: 334, nplAmt: 612, ecl: 581, cet1: 12.3, leverage: 5.22, distfee: 31, investors: 130, valCreate: 1680, rwaOpt: 1380, exitCand: 2620, repricing: 70, costIncome: 41.2, revPerEmp: 1.15, capPerDeal: 41, procDays: 35, largeExp: 82, concLimit: 25.1, lcr: 137, basel31: 244 } },
+                "EMEA": { "All": { portfolioValue: 19600, rwa: 9200, grorwa: 12.0, rote: 16.1, capitalRatio: 14.5, npl: 2.8, originations: 2300, pipeline: 4000, conversion: 62, dealsize: 155, distributed: 1850, distrate: 38, topConc: 20.1, top20: 43.2, lgd: 40.4, pd: 2.9, density: 46.9, belowHurdle: 720, capEff: 59.8, excessCap: 710, revenue: 920, nii: 585, fees: 215, other: 120, nplAmt: 138, ecl: 260, cet1: 12.4, leverage: 5.12, distfee: 33, investors: 58, valCreate: 750, rwaOpt: 640, exitCand: 1280, repricing: 73, costIncome: 37.2, revPerEmp: 1.22, capPerDeal: 43, procDays: 31, largeExp: 72, concLimit: 20.1, lcr: 144, basel31: 246 } },
+                "APAC": { "All": { portfolioValue: 14400, rwa: 6500, grorwa: 10.6, rote: 15.0, capitalRatio: 13.7, npl: 3.2, originations: 2200, pipeline: 3600, conversion: 58, dealsize: 130, distributed: 1450, distrate: 33, topConc: 25.2, top20: 49.0, lgd: 43.6, pd: 3.5, density: 45.1, belowHurdle: 1000, capEff: 55.2, excessCap: 380, revenue: 700, nii: 420, fees: 155, other: 125, nplAmt: 240, ecl: 195, cet1: 11.8, leverage: 5.32, distfee: 29, investors: 42, valCreate: 520, rwaOpt: 480, exitCand: 850, repricing: 65, costIncome: 43.5, revPerEmp: 1.10, capPerDeal: 33, procDays: 38, largeExp: 85, concLimit: 25.2, lcr: 132, basel31: 230 } },
+                "Americas": { "All": { portfolioValue: 9200, rwa: 4640, grorwa: 10.0, rote: 14.2, capitalRatio: 12.9, npl: 3.4, originations: 1700, pipeline: 3000, conversion: 58, dealsize: 125, distributed: 1200, distrate: 32, topConc: 23.8, top20: 46.8, lgd: 45.4, pd: 3.6, density: 50.4, belowHurdle: 800, capEff: 53.1, excessCap: 110, revenue: 336, nii: 205, fees: 42, other: 89, nplAmt: 194, ecl: 126, cet1: 11.9, leverage: 4.92, distfee: 27, investors: 26, valCreate: 380, rwaOpt: 270, exitCand: 540, repricing: 62, costIncome: 41.8, revPerEmp: 1.00, capPerDeal: 36, procDays: 41, largeExp: 79, concLimit: 23.8, lcr: 135, basel31: 236 } }
+            }
+        };
+
+        function getCurrentData() {
+            const timeframe = document.getElementById("timeframeFilter").value;
+            const region = document.getElementById("regionFilter").value;
+            const rating = document.getElementById("ratingFilter").value;
+
+            try {
+                if (baseData[timeframe] && baseData[timeframe][region] && baseData[timeframe][region][rating]) {
+                    return baseData[timeframe][region][rating];
+                }
+                if (baseData[timeframe] && baseData[timeframe][region] && baseData[timeframe][region]["All"]) {
+                    return baseData[timeframe][region]["All"];
+                }
+                if (baseData[timeframe] && baseData[timeframe]["All"] && baseData[timeframe]["All"]["All"]) {
+                    return baseData[timeframe]["All"]["All"];
+                }
+            } catch (e) {
+                console.error("Data retrieval error:", e);
+            }
+            return baseData["Q4-2025"]["All"]["All"];
+        }
+
+        function updateKPIs() {
+            const data = getCurrentData();
+            document.getElementById("kpi-portfolio").textContent = "€" + (data.portfolioValue / 1000).toFixed(1) + "B";
+            document.getElementById("kpi-rwa").textContent = "€" + (data.rwa / 1000).toFixed(1) + "B";
+            document.getElementById("kpi-grorwa").textContent = data.grorwa.toFixed(1) + "%";
+            document.getElementById("kpi-rote").textContent = data.rote.toFixed(1) + "%";
+            document.getElementById("kpi-capital").textContent = data.capitalRatio.toFixed(1) + "%";
+            document.getElementById("kpi-npl").textContent = data.npl.toFixed(1) + "%";
+            document.getElementById("kpi-originations").textContent = "€" + (data.originations / 1000).toFixed(1) + "B";
+            document.getElementById("kpi-pipeline").textContent = "€" + (data.pipeline / 1000).toFixed(1) + "B";
+            document.getElementById("kpi-conversion").textContent = data.conversion + "%";
+            document.getElementById("kpi-dealsize").textContent = "€" + data.dealsize + "m";
+            document.getElementById("kpi-topconc").textContent = data.topConc.toFixed(1) + "%";
+            document.getElementById("kpi-top20").textContent = data.top20.toFixed(1) + "%";
+            document.getElementById("kpi-lgd").textContent = data.lgd.toFixed(1) + "%";
+            document.getElementById("kpi-pd").textContent = data.pd.toFixed(1) + "%";
+            document.getElementById("kpi-density").textContent = data.density.toFixed(1) + "%";
+            document.getElementById("kpi-belowhumrdle").textContent = "€" + (data.belowHurdle / 1000).toFixed(1) + "B";
+            document.getElementById("kpi-capeff").textContent = data.capEff.toFixed(1) + "%";
+            document.getElementById("kpi-excesscap").textContent = "€" + (data.excessCap / 1000).toFixed(2) + "B";
+            document.getElementById("kpi-distributed").textContent = "€" + (data.distributed / 1000).toFixed(1) + "B";
+            document.getElementById("kpi-distrate").textContent = data.distrate + "%";
+            document.getElementById("kpi-revenue").textContent = "€" + data.revenue + "m";
+            document.getElementById("kpi-nii").textContent = "€" + data.nii + "m";
+            document.getElementById("kpi-fees").textContent = "€" + data.fees + "m";
+            document.getElementById("kpi-other").textContent = "€" + data.other + "m";
+            document.getElementById("kpi-nplamt").textContent = "€" + data.nplAmt + "m";
+            document.getElementById("kpi-ecl").textContent = "€" + data.ecl + "m";
+            document.getElementById("kpi-cet1").textContent = data.cet1.toFixed(1) + "%";
+            document.getElementById("kpi-leverage").textContent = data.leverage.toFixed(2) + "%";
+            document.getElementById("kpi-distfee").textContent = data.distfee;
+            document.getElementById("kpi-investors").textContent = data.investors;
+            document.getElementById("kpi-valcreate").textContent = "€" + (data.valCreate / 1000).toFixed(1) + "B";
+            document.getElementById("kpi-rwaopt").textContent = "€" + (data.rwaOpt / 1000).toFixed(1) + "B";
+            document.getElementById("kpi-exitcand").textContent = "€" + (data.exitCand / 1000).toFixed(1) + "B";
+            document.getElementById("kpi-repricing").textContent = data.repricing + " bps";
+            document.getElementById("kpi-costincome").textContent = data.costIncome.toFixed(1) + "%";
+            document.getElementById("kpi-revperemp").textContent = "€" + data.revPerEmp.toFixed(2) + "m";
+            document.getElementById("kpi-capperrdeal").textContent = "€" + data.capPerDeal + "m";
+            document.getElementById("kpi-procdays").textContent = data.procDays;
+            document.getElementById("kpi-largeexp").textContent = data.largeExp + "%";
+            document.getElementById("kpi-conclimit").textContent = data.concLimit.toFixed(1) + "%";
+            document.getElementById("kpi-lcr").textContent = data.lcr + "%";
+            document.getElementById("kpi-basel31").textContent = "+" + data.basel31 + " bps";
+        }
+
+        function destroyChart(chartId) {
+            if (charts[chartId]) {
+                try {
+                    charts[chartId].destroy();
+                    charts[chartId] = null;
+                    delete charts[chartId];
+                } catch (e) {
+                    console.error('Error destroying chart:', chartId, e);
+                }
+            }
+        }
+
+        function createChart(chartId, config) {
+            try {
+                destroyChart(chartId);
+                
+                const canvas = document.getElementById(chartId);
+                if (!canvas) {
+                    console.warn('Canvas element not found: ' + chartId);
+                    return false;
+                }
+                
+                const ctx = canvas.getContext('2d');
+                if (!ctx) {
+                    console.error('Failed to get 2D context for: ' + chartId);
+                    return false;
+                }
+                
+                if (!config.options) config.options = {};
+                if (!config.options.plugins) config.options.plugins = {};
+                if (!config.options.plugins.legend) config.options.plugins.legend = {};
+                if (!config.options.plugins.legend.labels) config.options.plugins.legend.labels = {};
+                
+                config.options.plugins.legend.labels.color = '#e8ecef';
+                config.options.plugins.legend.labels.font = { size: 11 };
+                config.options.animation = { duration: 0 };
+                
+                if (!config.options.scales) config.options.scales = {};
+                if (!config.options.scales.y) config.options.scales.y = {};
+                if (!config.options.scales.x) config.options.scales.x = {};
+                
+                config.options.scales.y.grid = { color: '#2a3442' };
+                config.options.scales.y.ticks = { color: '#a8b2bb' };
+                config.options.scales.x.grid = { color: '#2a3442' };
+                config.options.scales.x.ticks = { color: '#a8b2bb' };
+                
+                charts[chartId] = new Chart(ctx, config);
+                return true;
+            } catch (e) {
+                console.error('Error creating chart ' + chartId + ':', e);
+                return false;
+            }
+        }
+
+        function updateCharts() {
+            createChart('trendChart', {
+                type: 'line',
+                data: {
+                    labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                    datasets: [
+                        { label: 'Portfolio (€B)', data: [43.2, 44.8, 46.2, 47.3], borderColor: '#ff6b35', fill: false, tension: 0.4, pointBackgroundColor: '#ff6b35', pointRadius: 4, borderWidth: 2 },
+                        { label: 'RWA (€B)', data: [20.34, 20.65, 21.0, 21.2], borderColor: '#4ade80', fill: false, tension: 0.4, pointBackgroundColor: '#4ade80', pointRadius: 4, borderWidth: 2 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            createChart('sectorChart', {
+                type: 'doughnut',
+                data: {
+                    labels: ['Industrials', 'Energy', 'Financials', 'Real Estate', 'Technology', 'Other'],
+                    datasets: [{ data: [20.1, 17.4, 14.4, 13.1, 11.4, 23.6], backgroundColor: ['#ff6b35', '#4ade80', '#3b82f6', '#f59e0b', '#8b5cf6', '#06b6d4'], borderColor: '#1a1f26', borderWidth: 2 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+            });
+
+            createChart('ratingChart', {
+                type: 'bar',
+                data: {
+                    labels: ['AAA-AA', 'A', 'BBB', 'BB-B', '<B'],
+                    datasets: [{ label: 'Exposure (€m)', data: [2100, 8400, 15200, 14100, 7500], backgroundColor: '#ff6b35', borderColor: '#ff8c5a', borderWidth: 1 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+
+            createChart('productChart', {
+                type: 'doughnut',
+                data: {
+                    labels: ['Term Loans', 'RCFs', 'Acq Finance', 'Trade', 'Other'],
+                    datasets: [{ data: [37.8, 29.3, 19.5, 10.0, 3.4], backgroundColor: ['#ff6b35', '#4ade80', '#3b82f6', '#f59e0b', '#8b5cf6'], borderColor: '#1a1f26', borderWidth: 2 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+            });
+
+            createChart('maturityChart', {
+                type: 'bar',
+                data: {
+                    labels: ['<1Y', '1-3Y', '3-5Y', '5-7Y', '7Y+'],
+                    datasets: [{ label: 'Pipeline (€m)', data: [1240, 4200, 4680, 1680, 600], backgroundColor: '#3b82f6', borderColor: '#60a5fa', borderWidth: 1 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+
+            createChart('sectorExposureChart', {
+                type: 'bar',
+                data: {
+                    labels: ['Industrials', 'Energy', 'Financials', 'Real Estate', 'Tech'],
+                    datasets: [{ label: 'Exposure (€m)', data: [9500, 8200, 6800, 6200, 5400], backgroundColor: '#ff6b35', borderColor: '#ff8c5a', borderWidth: 1 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+
+            createChart('geoChart', {
+                type: 'doughnut',
+                data: {
+                    labels: ['EMEA', 'APAC', 'Americas'],
+                    datasets: [{ data: [45.3, 33.0, 21.7], backgroundColor: ['#ff6b35', '#4ade80', '#3b82f6'], borderColor: '#1a1f26', borderWidth: 2 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+            });
+
+            createChart('rwaClassChart', {
+                type: 'doughnut',
+                data: {
+                    labels: ['Corporate', 'Retail', 'Sovereigns', 'Banks', 'Other'],
+                    datasets: [{ data: [48.1, 19.3, 11.3, 13.2, 8.1], backgroundColor: ['#ff6b35', '#4ade80', '#3b82f6', '#f59e0b', '#8b5cf6'], borderColor: '#1a1f26', borderWidth: 2 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+            });
+
+            createChart('groRWADistChart', {
+                type: 'bar',
+                data: {
+                    labels: ['<5%', '5-8%', '8-12%', '12-16%', '16%+'],
+                    datasets: [{ label: 'Deals', data: [28, 45, 78, 92, 38], backgroundColor: '#ff6b35', borderColor: '#ff8c5a', borderWidth: 1 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+
+            createChart('distProductChart', {
+                type: 'doughnut',
+                data: {
+                    labels: ['Syndication', 'CLO', 'Portfolio Sales', 'Credit Ins', 'Other'],
+                    datasets: [{ data: [47.1, 27.2, 15.9, 7.1, 2.8], backgroundColor: ['#ff6b35', '#4ade80', '#3b82f6', '#f59e0b', '#8b5cf6'], borderColor: '#1a1f26', borderWidth: 2 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+            });
+
+            createChart('investorTypeChart', {
+                type: 'bar',
+                data: {
+                    labels: ['Asset Mgrs', 'PE', 'Insurance', 'Banks', 'Other'],
+                    datasets: [{ label: 'Count', data: [42, 38, 28, 22, 12], backgroundColor: '#4ade80', borderColor: '#86efac', borderWidth: 1 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+
+            createChart('revenueChart', {
+                type: 'doughnut',
+                data: {
+                    labels: ['NII', 'Fees & Comm', 'Trading'],
+                    datasets: [{ data: [58.3, 22.1, 19.7], backgroundColor: ['#ff6b35', '#4ade80', '#3b82f6'], borderColor: '#1a1f26', borderWidth: 2 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+            });
+
+            createChart('roteGrorwaChart', {
+                type: 'line',
+                data: {
+                    labels: ['Q1', 'Q2', 'Q3', 'Q4', 'Target'],
+                    datasets: [
+                        { label: 'ROTE (%)', data: [15.4, 16.2, 17.1, 18.2, 18.5], borderColor: '#ff6b35', fill: false, tension: 0.4, pointBackgroundColor: '#ff6b35', pointRadius: 4, borderWidth: 2 },
+                        { label: 'GRORWA (%)', data: [11.2, 11.6, 12.0, 12.4, 13.0], borderColor: '#4ade80', fill: false, tension: 0.4, pointBackgroundColor: '#4ade80', pointRadius: 4, borderWidth: 2 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'top' } } }
+            });
+
+            createChart('nplChart', {
+                type: 'bar',
+                data: {
+                    labels: ['BBB+', 'BBB', 'BBB-', 'BB+', 'BB'],
+                    datasets: [{ label: 'NPL (€m)', data: [45, 85, 156, 89, 70], backgroundColor: '#f87171', borderColor: '#fb7185', borderWidth: 1 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+
+            createChart('eclChart', {
+                type: 'bar',
+                data: {
+                    labels: ['Large Corp', 'Mid-Market', 'SME', 'Financials'],
+                    datasets: [{ label: 'Coverage (%)', data: [72, 68, 65, 58], backgroundColor: '#8b5cf6', borderColor: '#a78bfa', borderWidth: 1 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100 } } }
+            });
+
+            createChart('watchlistChart', {
+                type: 'line',
+                data: {
+                    labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+                    datasets: [{ label: 'Watch List (€m)', data: [680, 720, 750, 680], borderColor: '#facc15', fill: true, backgroundColor: 'rgba(250, 204, 21, 0.1)', tension: 0.4, pointBackgroundColor: '#facc15', pointRadius: 4, borderWidth: 2 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
+            });
+
+            createChart('valueLeverChart', {
+                type: 'bar',
+                data: {
+                    labels: ['Repricing', 'RWA Opt', 'Exit/Sale', 'Cross-sell', 'M&A Wallet'],
+                    datasets: [{ label: 'Value (€m)', data: [650, 480, 520, 240, 210], backgroundColor: '#ff6b35', borderColor: '#ff8c5a', borderWidth: 1 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+
+            createChart('rwaOptChart', {
+                type: 'bar',
+                data: {
+                    labels: ['Current RWA', 'Guarantees', 'Risk Transfers', 'Rerating', 'Collateral Opt', 'Target RWA'],
+                    datasets: [{ label: 'RWA (€B)', data: [21.2, -0.35, -0.28, -0.18, -0.22, 19.2], backgroundColor: ['#ff6b35', '#4ade80', '#4ade80', '#4ade80', '#4ade80', '#3b82f6'], borderColor: '#1a1f26', borderWidth: 1 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+
+            createChart('segmentGrowthChart', {
+                type: 'line',
+                data: {
+                    labels: ['Q1', 'Q2', 'Q3', 'Q4', 'Target'],
+                    datasets: [
+                        { label: 'Large Corp', data: [18200, 19100, 20200, 21400, 22000], borderColor: '#ff6b35', fill: false, tension: 0.4, pointBackgroundColor: '#ff6b35', pointRadius: 3, borderWidth: 2 },
+                        { label: 'Mid-Market', data: [14800, 15300, 15900, 16300, 17000], borderColor: '#4ade80', fill: false, tension: 0.4, pointBackgroundColor: '#4ade80', pointRadius: 3, borderWidth: 2 },
+                        { label: 'Sponsors', data: [10200, 10400, 10100, 9600, 9500], borderColor: '#3b82f6', fill: false, tension: 0.4, pointBackgroundColor: '#3b82f6', pointRadius: 3, borderWidth: 2 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'top' } } }
+            });
+
+            createChart('officeChart', {
+                type: 'doughnut',
+                data: {
+                    labels: ['Front Office', 'Middle Office', 'Back Office'],
+                    datasets: [{ data: [42, 28, 30], backgroundColor: ['#ff6b35', '#4ade80', '#3b82f6'], borderColor: '#1a1f26', borderWidth: 2 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+            });
+
+            createChart('processingChart', {
+                type: 'bar',
+                data: {
+                    labels: ['Credit', 'Legal', 'Documentation', 'Systems', 'Execution'],
+                    datasets: [{ label: 'Avg Days', data: [8, 7, 6, 5, 6], backgroundColor: '#ff6b35', borderColor: '#ff8c5a', borderWidth: 1 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+            });
+
+            createChart('deploymentChart', {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [
+                        { label: 'Actual', data: [320, 640, 980, 1280, 1550, 1820, 2100, 2380, 2650, 2920, 3180, 3200], borderColor: '#ff6b35', fill: false, tension: 0.4, pointBackgroundColor: '#ff6b35', pointRadius: 3, borderWidth: 2 },
+                        { label: 'Target', data: [300, 600, 950, 1250, 1600, 1900, 2200, 2500, 2800, 3100, 3400, 3800], borderColor: '#4ade80', fill: false, tension: 0.4, pointBackgroundColor: '#4ade80', pointRadius: 3, borderDash: [5, 5], borderWidth: 2 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'top' } } }
+            });
+
+            createChart('regLimitsChart', {
+                type: 'bar',
+                data: {
+                    labels: ['Large Exp\n(25% limit)', 'Sector Conc\n(50% limit)', 'Geo Conc\n(60% limit)', 'Related Party\n(20% limit)'],
+                    datasets: [{ label: 'Utilisation (%)', data: [78, 47, 52, 18], backgroundColor: ['#f87171', '#fbbf24', '#60a5fa', '#4ade80'], borderColor: '#1a1f26', borderWidth: 1 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100 } } }
+            });
+
+            createChart('capReqChart', {
+                type: 'line',
+                data: {
+                    labels: ['Q1', 'Q2', 'Q3', 'Q4', 'Basel3.1'],
+                    datasets: [
+                        { label: 'CET1 (%)', data: [12.3, 12.1, 11.9, 11.8, 10.8], borderColor: '#ff6b35', fill: false, tension: 0.4, pointBackgroundColor: '#ff6b35', pointRadius: 4, borderWidth: 2 },
+                        { label: 'Min Req (%)', data: [9.5, 9.5, 9.5, 9.5, 10.2], borderColor: '#ef4444', fill: false, tension: 0.4, pointBackgroundColor: '#ef4444', pointRadius: 4, borderDash: [5, 5], borderWidth: 2 }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'top' } } }
+            });
+        }
+
+        function populateTables() {
+            const topClients = [
+                { name: 'Global Energy Corp', sector: 'Energy', region: 'EMEA', exp: 2450, rwa: 1680, rating: 'A-', grorwa: 14.2 },
+                { name: 'Advanced Manufacturing', sector: 'Industrials', region: 'EMEA', exp: 1980, rwa: 1210, rating: 'BBB+', grorwa: 12.8 },
+                { name: 'Tech Innovation Inc', sector: 'Technology', region: 'APAC', exp: 1850, rwa: 980, rating: 'BBB', grorwa: 15.3 },
+                { name: 'Healthcare Solutions', sector: 'Healthcare', region: 'Americas', exp: 1620, rwa: 845, rating: 'A', grorwa: 16.1 },
+                { name: 'Real Estate Partners', sector: 'Real Estate', region: 'EMEA', exp: 1510, rwa: 920, rating: 'BBB-', grorwa: 11.2 }
+            ];
+            let html = '';
+            topClients.forEach(c => {
+                html += '<tr><td>' + c.name + '</td><td>' + c.sector + '</td><td>' + c.region + '</td><td>€' + c.exp + '</td><td>€' + c.rwa + '</td><td><span class="badge badge-info">' + c.rating + '</span></td><td><strong>' + c.grorwa.toFixed(1) + '%</strong></td></tr>';
+            });
+            document.getElementById("top10Table").innerHTML = html;
+
+            const pipelineDeals = [
+                { name: 'Infrastructure Fund VI', size: 850, stage: 'Approved', grorwa: 13.2, close: 'Q1 26' },
+                { name: 'Telecom EU', size: 650, stage: 'Term Sheet', grorwa: 12.8, close: 'Q1 26' },
+                { name: 'Healthcare Con', size: 580, stage: 'Structuring', grorwa: 14.5, close: 'Q2 26' },
+                { name: 'Mfg APAC', size: 420, stage: 'Underwriting', grorwa: 11.9, close: 'Q1 26' }
+            ];
+            html = '';
+            pipelineDeals.forEach(d => {
+                html += '<tr><td>' + d.name + '</td><td>€' + d.size + 'm</td><td><span class="badge badge-info">' + d.stage + '</span></td><td><strong>' + d.grorwa.toFixed(1) + '%</strong></td><td>' + d.close + '</td></tr>';
+            });
+            document.getElementById("pipelineTable").innerHTML = html;
+
+            const creditQuality = [
+                { rating: 'AAA-AA', exp: 2100, pd: 0.12, watchlist: 45, npl: 18, coverage: 95 },
+                { rating: 'A', exp: 8400, pd: 0.45, watchlist: 82, npl: 52, coverage: 88 },
+                { rating: 'BBB', exp: 15200, pd: 1.20, watchlist: 285, npl: 185, coverage: 75 },
+                { rating: 'BB-B', exp: 14100, pd: 3.50, watchlist: 210, npl: 142, coverage: 62 },
+                { rating: '<B', exp: 7500, pd: 8.20, watchlist: 78, npl: 48, coverage: 45 }
+            ];
+            html = '';
+            creditQuality.forEach(cq => {
+                let watchBadge = cq.watchlist > 200 ? 'badge-warning' : 'badge-success';
+                html += '<tr><td>' + cq.rating + '</td><td>€' + cq.exp + 'm</td><td>' + cq.pd.toFixed(2) + '%</td><td><span class="badge ' + watchBadge + '">€' + cq.watchlist + 'm</span></td><td>€' + cq.npl + 'm</td><td>' + cq.coverage + '%</td></tr>';
+            });
+            document.getElementById("creditQualityTable").innerHTML = html;
+
+            const belowHurdle = [
+                { name: 'Legacy RE Portfolio', exp: 580, grorwa: 6.2, hurdle: 10.0, gap: -380, action: 'Exit Plan Q1' },
+                { name: 'Commodity Traders', exp: 420, grorwa: 7.5, hurdle: 11.0, gap: -350, action: 'Repricing' },
+                { name: 'Admin Services', exp: 310, grorwa: 8.1, hurdle: 11.5, gap: -340, action: 'Portfolio Sale' },
+                { name: 'Trade Finance', exp: 520, grorwa: 5.8, hurdle: 9.5, gap: -370, action: 'Exit Q2' },
+                { name: 'Emerging Mkts', exp: 370, grorwa: 7.9, hurdle: 12.0, gap: -410, action: 'Restructure' }
+            ];
+            html = '';
+            belowHurdle.forEach(bh => {
+                html += '<tr><td>' + bh.name + '</td><td>€' + bh.exp + 'm</td><td>' + bh.grorwa.toFixed(1) + '%</td><td>' + bh.hurdle.toFixed(1) + '%</td><td><span class="badge badge-warning">' + bh.gap + ' bps</span></td><td><small>' + bh.action + '</small></td></tr>';
+            });
+            document.getElementById("belowHurdleTable").innerHTML = html;
+
+            const regulatory = [
+                { name: 'CET1 Ratio', current: '11.8%', min: '9.5%', buffer: 330, status: 'green' },
+                { name: 'Tier 1 Ratio', current: '13.2%', min: '11.0%', buffer: 220, status: 'green' },
+                { name: 'Total Capital', current: '16.4%', min: '14.5%', buffer: 190, status: 'green' },
+                { name: 'Leverage Ratio', current: '5.2%', min: '3.0%', buffer: 220, status: 'green' },
+                { name: 'LCR', current: '142%', min: '100%', buffer: 4200, status: 'green' }
+            ];
+            html = '';
+            regulatory.forEach(reg => {
+                let statusBadge = reg.status === 'green' ? 'badge-success' : 'badge-warning';
+                let bufferLabel = reg.name === 'LCR' ? reg.buffer + 'bps' : reg.buffer + ' bps';
+                html += '<tr><td><strong>' + reg.name + '</strong></td><td>' + reg.current + '</td><td>' + reg.min + '</td><td><span class="badge ' + statusBadge + '">' + bufferLabel + '</span></td><td>✓ Compliant</td></tr>';
+            });
+            document.getElementById("regulatoryTable").innerHTML = html;
+        }
+
+        function switchTab(event, tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            setTimeout(() => {
+                window.dispatchEvent(new Event('resize'));
+                Object.keys(charts).forEach(chartId => {
+                    try {
+                        if (charts[chartId] && charts[chartId].resize && typeof charts[chartId].resize === 'function') {
+                            charts[chartId].resize();
+                        }
+                    } catch (e) {
+                        console.warn('Chart resize error:', chartId);
+                    }
+                });
+            }, 150);
+        }
+
+        function updateDashboard() {
+            console.log('Updating dashboard...');
+            updateKPIs();
+            updateCharts();
+            populateTables();
+        }
+
+        function initializeDashboard() {
+            console.log('Initializing dashboard - readyState:', document.readyState);
+            const canvases = document.querySelectorAll('canvas');
+            console.log('Found ' + canvases.length + ' canvas elements');
+            
+            if (canvases.length > 0) {
+                setTimeout(() => {
+                    try {
+                        updateDashboard();
+                        console.log('Dashboard initialization complete');
+                    } catch (e) {
+                        console.error('Dashboard initialization error:', e);
+                    }
+                }, 200);
+            } else {
+                console.warn('Canvas elements not found, retrying...');
+                setTimeout(initializeDashboard, 100);
+            }
+        }
+
+        const timeframeFilter = document.getElementById("timeframeFilter");
+        const regionFilter = document.getElementById("regionFilter");
+        const ratingFilter = document.getElementById("ratingFilter");
+        
+        if (timeframeFilter) timeframeFilter.addEventListener("change", updateDashboard);
+        if (regionFilter) regionFilter.addEventListener("change", updateDashboard);
+        if (ratingFilter) ratingFilter.addEventListener("change", updateDashboard);
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeDashboard);
+        } else {
+            initializeDashboard();
+        }
+    </script>
+</body>
+</html>
